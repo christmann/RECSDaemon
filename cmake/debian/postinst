@@ -1,0 +1,35 @@
+#!/bin/sh
+
+set -e
+
+case "$1" in
+    configure)
+		if [ -z "$2" ]; then
+			echo "First installation, adjusting config for system"
+			
+			if stat /dev/i2c-* 2>/dev/null >/dev/null
+			then
+		    	echo "Found I2C dev file, setting communicator plugin to LinuxCommunicatorDev"
+		    	sed -i "/^PluginName=/s/=CommunicatorDummy/=LinuxCommunicatorDev/" /opt/RECSDaemon/conf/recsdaemon.ini
+			else
+		    	echo "No I2C device file support"
+			fi
+			
+			if grep -qi exynos /proc/cpuinfo; then
+				echo "Found Exynos module, setting slot GPIOs and I2C bus"
+				sed -i "/^slotPluginName=/s/=/=LinuxSlotDetectorGPIO/" /opt/RECSDaemon/conf/recsdaemon.ini
+				sed -i "/^Bit0GPIO=/s/=-1/=133/" /opt/RECSDaemon/conf/recsdaemon.ini
+				sed -i "/^Bit1GPIO=/s/=-1/=134/" /opt/RECSDaemon/conf/recsdaemon.ini
+				sed -i "/^i2cBus=/s/=0/=7/" /opt/RECSDaemon/conf/recsdaemon.ini
+			else
+				echo "Not a Exynos module"
+			fi
+			
+		else
+			echo "Detected upgrade installation"
+		fi
+		
+		;;
+esac
+
+exit 0
