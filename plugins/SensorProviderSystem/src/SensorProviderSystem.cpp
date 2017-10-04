@@ -179,7 +179,7 @@ void SensorProviderSystem::updateMemoryFree(SensorBean* sensor) {
 			string prefix;
 			stream >> prefix;
 
-			if (prefix == "MemFree:") {
+			if (prefix == "MemAvailable:") {
 				stream >> freeMem;
 			}
 		}
