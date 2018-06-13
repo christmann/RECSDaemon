@@ -138,7 +138,9 @@ string Node::executeCommand(string command, string parameters) {
 	LOG4CXX_DEBUG(logger, "Executing command: '" << command << "', parameters: '" << parameters << "'");
 
 	if (command == "shutdown") {
-		return shutdown();
+		return shutdown(true);
+	} else if (command == "reboot") {
+		return shutdown(false);
 	} else {
 
 	}
@@ -146,17 +148,25 @@ string Node::executeCommand(string command, string parameters) {
 	return "Unknown command";
 }
 
-string Node::shutdown() {
+string Node::shutdown(bool poweroff) {
 	LOG4CXX_INFO(logger, "Shutting down system...");
 #ifndef WIN32
-	int ret = system("shutdown -P now");
-	if (ret) {
-		LOG4CXX_ERROR(logger, "Could not execute shutdown, maybe missing permission?");
-		return "failed";
+	if (poweroff) {
+		int ret = system("shutdown -P now");
+		if (ret) {
+			LOG4CXX_ERROR(logger, "Could not execute shutdown, maybe missing permission?");
+			return "failed";
+		}
+		// Hardcore version: Directly shut down kernel
+		//sync();
+		//reboot(RB_POWER_OFF);
+	} else {
+		int ret = system("reboot");
+		if (ret) {
+			LOG4CXX_ERROR(logger, "Could not execute reboot, maybe missing permission?");
+			return "failed";
+		}
 	}
-	// Hardcore version: Directly shut down kernel
-	//sync();
-	//reboot(RB_POWER_OFF);
 	return "success";
 #else
 	HANDLE hToken;
@@ -181,7 +191,7 @@ string Node::shutdown() {
 
 	// Shut down the system and force all applications to close.
 
-	if (!ExitWindowsEx(EWX_SHUTDOWN | EWX_FORCE | EWX_POWEROFF, 0)) {
+	if (!ExitWindowsEx((poweroff ? (EWX_SHUTDOWN | EWX_POWEROFF) : EWX_REBOOT) | EWX_FORCE, 0)) {
 		return "Could not shutdown system";
 	}
 

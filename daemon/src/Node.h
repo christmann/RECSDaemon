@@ -68,7 +68,7 @@ public:
 	string getJSONMonitoringData(Daemon* daemon);
 	uint16_t findHeaderDataChunkOffset(Daemon* daemon, uint8_t chunkType);
 private:
-	string shutdown();
+	string shutdown(bool poweroff);
 	uint16_t fromLitteEndian(uint16_t value);
 
 	uint8_t mBaseboardID;
