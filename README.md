@@ -9,12 +9,12 @@ The RECSDaemon is a small program that can be installed on compute modules in a 
 RECSDaemon uses CMake as it's build system. It also depends on log4cxx as it's logging system.
 
 Install dependencies:
-```
+```bash
 sudo apt-get install liblog4cxx10-dev
 ```
 
 To build:
-```
+```bash
 mkdir build
 cd build
 cmake ..
