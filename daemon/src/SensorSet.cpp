@@ -156,8 +156,12 @@ uint8_t* SensorSet::getMessage() {
 
 	size_t offset = sizeof(Monitoring_Data_Header);
 	for (SensorMap::iterator iterator = mSensorMap.begin(); iterator != mSensorMap.end(); ++iterator) {
-		iterator->second->getData(&mData[offset]);
-		offset += iterator->second->getMaxDataSize();
+		bool ret = iterator->second->getData(&mData[offset]);
+		size_t len = iterator->second->getMaxDataSize();
+		if (!ret) {
+			memset(&mData[offset], 0, len);
+		}
+		offset += len;
 	}
 	return mData;
 }
