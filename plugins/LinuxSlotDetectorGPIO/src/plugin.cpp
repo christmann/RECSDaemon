@@ -52,7 +52,7 @@ extern "C" PLUGIN_API PF_ExitFunc PF_initPlugin(const PF_PlatformServices * para
 	if (res < 0) {
 		return NULL;
 	}
-	SlotDetector::logger = *((LoggerPtr*)params->invokeService((const uint8_t *)"getLogger", (void*)"LinuxSlotDetectorGPIO")9;
+	SlotDetector::logger = *((LoggerPtr*)params->invokeService((const uint8_t *)"getLogger", (void*)"LinuxSlotDetectorGPIO"));
 	SlotDetector::config = static_cast<IConfig*>(params->invokeService((const uint8_t *)"getConfig", NULL));
 
 	return ExitFunc;
