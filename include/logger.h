@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright (C) 2017 christmann informationstechnik + medien GmbH & Co. KG
+// Copyright (C) 2019 christmann informationstechnik + medien GmbH & Co. KG
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -22,46 +22,36 @@
 // Author: Stefan Krupop <stefan.krupop@christmann.info>
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef SENSORPROVIDERZYNQ_H
-#define SENSORPROVIDERZYNQ_H
+#ifndef LOGGER_H_
+#define LOGGER_H_
 
-#ifdef WIN32
-#define WINVER 0x0501 // At least Win XP
-#include <Windows.h>
-#endif
-#include <object_model.h>
+#include <ctime>
+#include <iostream>
 #include <string>
-#include <map>
-#include <logger.h>
-#include <c_object_model.h>
-#include <SensorBean.h>
 
-struct PF_ObjectParams;
+using namespace std;
 
-class SensorProviderSystem: public ISensorProvider {
+class Logger;
+typedef string LoggerPtr;
+
+#define LOG_WRITE(logger, message, level, stream) { \
+	    time_t     now = time(0); \
+	    struct tm  tstruct; \
+	    char       buf[10]; \
+	    tstruct = *localtime(&now); \
+	    strftime(buf, sizeof(buf), "%H:%M:%S ", &tstruct); \
+        stream << buf << level << " " << logger << " - " << message << endl << flush; }
+
+#define LOG_ERROR(logger, message) LOG_WRITE(logger, message, "ERROR", cerr)
+#define LOG_WARN(logger, message)  LOG_WRITE(logger, message, "WARN ", cout)
+#define LOG_INFO(logger, message)  LOG_WRITE(logger, message, "INFO ", cout)
+#define LOG_DEBUG(logger, message) LOG_WRITE(logger, message, "DEBUG", cout)
+
+class Logger {
 public:
-	// static plugin interface
-	static void * create(PF_ObjectParams *);
-	static int32_t destroy(void *);
-	~SensorProviderSystem();
-
-	// ISensorProvider methods
-	virtual std::map<std::string, ISensor*> getSensors(void);
-
-	static LoggerPtr logger;
-private:
-	SensorProviderSystem();
-	static void updateCpuUtilization(SensorBean* sensor);
-	static void updateMemoryFree(SensorBean* sensor);
-	static void updateDiskFree(SensorBean* sensor);
-#ifdef WIN32
-	static uint64_t filetimeToUint64(const FILETIME &v);
-#endif
-
-
-	std::map<std::string, ISensor*> mSensors;
-	static uint64_t mLastTotalTime;
-	static uint64_t mLastWorkTime;
+	static LoggerPtr getLogger(string name) {
+		return name;
+	}
 };
 
-#endif
+#endif /* LOGGER_H_ */

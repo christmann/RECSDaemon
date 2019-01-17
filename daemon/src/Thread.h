@@ -26,7 +26,7 @@
 #define THREAD_H_
 
 #include <pthread.h>
-#include <log4cxx/logger.h>
+#include <logger.h>
 
 extern "C" {
 
@@ -55,7 +55,7 @@ class Thread {
     void *mArg;
     bool running;
 
-    static log4cxx::LoggerPtr logger;
+    static LoggerPtr logger;
 };
 
 }

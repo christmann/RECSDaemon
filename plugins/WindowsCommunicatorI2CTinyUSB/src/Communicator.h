@@ -27,7 +27,7 @@
 
 #include <object_model.h>
 #include <usb.h>
-#include <log4cxx/logger.h>
+#include <logger.h>
 
 struct PF_ObjectParams;
 
@@ -45,7 +45,7 @@ public:
 	virtual ssize_t readData(size_t offset, void* buf, size_t count);
 	virtual ssize_t writeData(size_t offset, const void* buf, size_t count);
 
-	static log4cxx::LoggerPtr logger;
+	static LoggerPtr logger;
 
 private:
 	Communicator();

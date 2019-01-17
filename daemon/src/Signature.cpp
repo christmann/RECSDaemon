@@ -36,7 +36,6 @@
 #endif
 #endif
 
-using namespace log4cxx;
 using namespace std;
 
 LoggerPtr Signature::logger(Logger::getLogger("Signature"));
@@ -62,20 +61,20 @@ Signature::Signature() {
     p = &publicKeyData[0];
     RSA* rsa_pubkey = d2i_RSAPublicKey(NULL, (const unsigned char**)&p, sizeof(publicKeyData));
     if (rsa_pubkey == NULL) {
-    	LOG4CXX_ERROR(logger, "Could parse public key, error 0x" << hex << ERR_get_error());
+    	LOG_ERROR(logger, "Could parse public key, error 0x" << hex << ERR_get_error());
     	return;
     }
 
     mPublicKey = EVP_PKEY_new();
     if(!EVP_PKEY_assign_RSA(mPublicKey, rsa_pubkey)) {
-    	LOG4CXX_ERROR(logger, "Could not assign public key, error 0x" << hex << ERR_get_error());
+    	LOG_ERROR(logger, "Could not assign public key, error 0x" << hex << ERR_get_error());
         return;
     }
 
     mContext = NULL;
     mContext = EVP_MD_CTX_create();
     if(mContext == NULL) {
-        LOG4CXX_ERROR(logger, "EVP_MD_CTX_create failed, error 0x" << hex << ERR_get_error());
+        LOG_ERROR(logger, "EVP_MD_CTX_create failed, error 0x" << hex << ERR_get_error());
         return;
     }
 #else
@@ -83,18 +82,18 @@ Signature::Signature() {
 	DWORD publicKeyBlobLen;
 
 	if (!CryptDecodeObjectEx(X509_ASN_ENCODING, RSA_CSP_PUBLICKEYBLOB, publicKeyData, sizeof(publicKeyData), CRYPT_ENCODE_ALLOC_FLAG, NULL, &publicKeyBlob, &publicKeyBlobLen)) {
-		LOG4CXX_ERROR(logger, "Could not decode DER public key, error 0x" << hex << GetLastError());
+		LOG_ERROR(logger, "Could not decode DER public key, error 0x" << hex << GetLastError());
 		return;
 	}
 
 	if (!CryptAcquireContext(&mCryptProvider, 0, 0, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT)) {
-		LOG4CXX_ERROR(logger, "Could not acquire crypto context, error 0x" << hex << GetLastError());
+		LOG_ERROR(logger, "Could not acquire crypto context, error 0x" << hex << GetLastError());
 		return;
 	}
 
 	//if (!CryptImportPublicKeyInfo(mCryptProvider, X509_ASN_ENCODING | PKCS_7_ASN_ENCODING, publicKeyInfo, &mPublicKey)) {
 	if (!CryptImportKey(mCryptProvider, publicKeyBlob, publicKeyBlobLen, 0, 0, &mPublicKey)) {
-		LOG4CXX_ERROR(logger, "Could not import public key, error 0x" << hex << GetLastError());
+		LOG_ERROR(logger, "Could not import public key, error 0x" << hex << GetLastError());
 		return;
 	}
 	LocalFree(publicKeyBlob);
@@ -115,12 +114,12 @@ Signature::~Signature() {
 bool Signature::checkSignature(uint8_t* data, size_t dataLength, uint8_t* signature, size_t signatureLength) {
 #ifndef WIN32
     if (EVP_DigestVerifyInit(mContext, NULL, EVP_sha1(), NULL, mPublicKey) != 1) {
-    	LOG4CXX_ERROR(logger, "Could not initialize verify, error 0x" << hex << ERR_get_error());
+    	LOG_ERROR(logger, "Could not initialize verify, error 0x" << hex << ERR_get_error());
     	return false;
     }
 
     if (EVP_DigestVerifyUpdate(mContext, data, dataLength) != 1) {
-    	LOG4CXX_ERROR(logger, "Could not update data, error 0x" << hex << ERR_get_error());
+    	LOG_ERROR(logger, "Could not update data, error 0x" << hex << ERR_get_error());
     	return false;
     }
 
@@ -132,11 +131,11 @@ bool Signature::checkSignature(uint8_t* data, size_t dataLength, uint8_t* signat
 #else
 	HCRYPTHASH hash;
 	if (!CryptCreateHash(mCryptProvider, CALG_SHA1, 0, 0, &hash)) {
-		LOG4CXX_ERROR(logger, "Could not create hash, error 0x" << hex << GetLastError());
+		LOG_ERROR(logger, "Could not create hash, error 0x" << hex << GetLastError());
 		return false;
 	}
 	if (!CryptHashData(hash, data, dataLength, 0)) {
-		LOG4CXX_ERROR(logger, "Could not hash data, error 0x" << hex << GetLastError());
+		LOG_ERROR(logger, "Could not hash data, error 0x" << hex << GetLastError());
 		return false;
 	}
 
@@ -149,7 +148,7 @@ bool Signature::checkSignature(uint8_t* data, size_t dataLength, uint8_t* signat
 	if (!CryptVerifySignature(hash, sigRev, signatureLength, mPublicKey, NULL, 0)) {
 		free(sigRev);
 		CryptDestroyHash(hash);
-		LOG4CXX_ERROR(logger, "Could not verify signature, error 0x" << hex << GetLastError());
+		LOG_ERROR(logger, "Could not verify signature, error 0x" << hex << GetLastError());
 		return false;
 	}
 	free(sigRev);

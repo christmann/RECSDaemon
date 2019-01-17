@@ -29,7 +29,7 @@
 #include <string>
 #include <sstream>
 #include <list>
-#include <log4cxx/logger.h>
+#include <logger.h>
 #include <IConfig.h>
 #include "ConfigChangeListener.h"
 #include "ini_manage.h"
@@ -85,7 +85,7 @@ private:
 	list<ConfigChangeListener*>* mListeners;
 	bool mDisableChangeListeners;
 
-	static log4cxx::LoggerPtr logger;
+	static LoggerPtr logger;
 };
 
 #endif /* CONFIG_H_ */

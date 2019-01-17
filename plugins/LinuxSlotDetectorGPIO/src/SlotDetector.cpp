@@ -34,7 +34,6 @@
 #include <unistd.h>
 
 using namespace std;
-using namespace log4cxx;
 
 LoggerPtr SlotDetector::logger;
 IConfig* SlotDetector::config;
@@ -61,7 +60,7 @@ int SlotDetector::exportGPIO(int pinNr) {
 	char set_value[5];
 
 	if ((fp = fopen("/sys/class/gpio/export", "ab")) == NULL) {
-		LOG4CXX_ERROR(logger, "Cannot open GPIO export file: " << string(strerror(errno)));
+		LOG_ERROR(logger, "Cannot open GPIO export file: " << string(strerror(errno)));
 		return -1;
 	}
 	//Set pointer to beginning of the file
@@ -81,7 +80,7 @@ int SlotDetector::setDirection(int pinNr, int direction) {
 
 	sprintf(&filename[0], "/sys/class/gpio/gpio%d/direction", pinNr);
 	if ((fp = fopen(filename, "rb+")) == NULL) {
-		LOG4CXX_ERROR(logger, "cannot open GPIO " << pinNr << " direction file: " << string(strerror(errno)));
+		LOG_ERROR(logger, "cannot open GPIO " << pinNr << " direction file: " << string(strerror(errno)));
 		return -1;
 	}
 	//Set pointer to begining of the file
@@ -104,7 +103,7 @@ FILE* SlotDetector::openGPIO(int pinNr) {
 
 	sprintf(&filename[0], "/sys/class/gpio/gpio%d/value", pinNr);
 	if ((fp = fopen(filename, "rb+")) == NULL) {
-		LOG4CXX_ERROR(logger, "cannot open GPIO " << pinNr << " value file: " << string(strerror(errno)));
+		LOG_ERROR(logger, "cannot open GPIO " << pinNr << " value file: " << string(strerror(errno)));
 		return NULL;
 	}
 	return fp;
@@ -128,7 +127,7 @@ int8_t SlotDetector::getSlot(void) {
 	int bit0GPIO = config->GetInt("Slot", "Bit0GPIO", -1);
 	int bit1GPIO = config->GetInt("Slot", "Bit1GPIO", -1);
 	if (bit0GPIO == -1 || bit1GPIO == -1) {
-		LOG4CXX_ERROR(logger, "GPIO config not set. Please set entries Bit0GPIO and Bit1GPIO in section Slot in config file");
+		LOG_ERROR(logger, "GPIO config not set. Please set entries Bit0GPIO and Bit1GPIO in section Slot in config file");
 		return -1;
 	}
 

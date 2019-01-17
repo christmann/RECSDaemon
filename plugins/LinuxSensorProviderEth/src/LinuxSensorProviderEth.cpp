@@ -43,7 +43,6 @@
 #include <time.h>
 
 using namespace std;
-using namespace log4cxx;
 
 LoggerPtr LinuxSensorProviderEth::logger;
 
@@ -67,14 +66,14 @@ LinuxSensorProviderEth::LinuxSensorProviderEth() :
 
 	int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
 	if (sock == -1) {
-		LOG4CXX_ERROR(logger, "Could not create socket");
+		LOG_ERROR(logger, "Could not create socket");
 		return;
 	};
 
 	ifc.ifc_len = sizeof(buf);
 	ifc.ifc_buf = buf;
 	if (ioctl(sock, SIOCGIFCONF, &ifc) == -1) {
-		LOG4CXX_ERROR(logger, "Could not get list of interface addresses (SIOCGIFCONF)");
+		LOG_ERROR(logger, "Could not get list of interface addresses (SIOCGIFCONF)");
 		return;
 	}
 
@@ -87,7 +86,7 @@ LinuxSensorProviderEth::LinuxSensorProviderEth() :
 			if (! (ifr.ifr_flags & IFF_LOOPBACK)) { // don't count loopback
 
 				string ifaceName(it->ifr_name);
-				LOG4CXX_INFO(logger, "Found Ethernet interface " << ifaceName);
+				LOG_INFO(logger, "Found Ethernet interface " << ifaceName);
 
 				AdapterInfo* tag = new AdapterInfo();
 				tag->name = ifaceName;
@@ -116,7 +115,7 @@ LinuxSensorProviderEth::LinuxSensorProviderEth() :
 				tag->txSensor = sensor;
 			}
 		} else {
-			LOG4CXX_ERROR(logger, "Could not get interface flags (SIOCGIFFLAGS)");
+			LOG_ERROR(logger, "Could not get interface flags (SIOCGIFFLAGS)");
 		}
 	}
 }
@@ -139,7 +138,7 @@ void LinuxSensorProviderEth::updateLinkStatus(SensorBean* sensor) {
 		getline(myfile, line);
 		myfile.close();
 	} else {
-		LOG4CXX_ERROR(logger, "Could not open file '/sys/class/net/" << tag->name << "/carrier'");
+		LOG_ERROR(logger, "Could not open file '/sys/class/net/" << tag->name << "/carrier'");
 		return;
 	}
 
@@ -150,7 +149,7 @@ void LinuxSensorProviderEth::updateLinkStatus(SensorBean* sensor) {
 			sensor->setData(line + " MBit/s");
 			myfile2.close();
 		} else {
-			LOG4CXX_ERROR(logger, "Could not open file '/sys/class/net/" << tag->name << "/speed'");
+			LOG_ERROR(logger, "Could not open file '/sys/class/net/" << tag->name << "/speed'");
 			return;
 		}
 	} else {
@@ -174,12 +173,12 @@ void LinuxSensorProviderEth::updateUtilization(SensorBean* sensor) {
 		if ((i >> value)) {
 			rxBytes = value;
 		} else {
-			LOG4CXX_WARN(logger, "Could not parse rx_bytes");
+			LOG_WARN(logger, "Could not parse rx_bytes");
 			return;
 		}
 		myfile.close();
 	} else {
-		LOG4CXX_ERROR(logger, "Could not read file '/sys/class/net/" << tag->name << "/statistics/rx_bytes'");
+		LOG_ERROR(logger, "Could not read file '/sys/class/net/" << tag->name << "/statistics/rx_bytes'");
 		return;
 	}
 
@@ -191,12 +190,12 @@ void LinuxSensorProviderEth::updateUtilization(SensorBean* sensor) {
 		if ((i >> value)) {
 			txBytes = value;
 		} else {
-			LOG4CXX_WARN(logger, "Could not parse tx_bytes");
+			LOG_WARN(logger, "Could not parse tx_bytes");
 			return;
 		}
 		myfile2.close();
 	} else {
-		LOG4CXX_ERROR(logger, "Could not read file '/sys/class/net/" << tag->name << "/statistics/tx_bytes'");
+		LOG_ERROR(logger, "Could not read file '/sys/class/net/" << tag->name << "/statistics/tx_bytes'");
 		return;
 	}
 
@@ -218,7 +217,7 @@ void LinuxSensorProviderEth::updateUtilization(SensorBean* sensor) {
 	uint32_t rxDiff = ((double)(rxBytes - tag->lastCountRx) / diff);
 	uint32_t txDiff = ((double)(txBytes - tag->lastCountTx) / diff);
 
-	//LOG4CXX_DEBUG(logger, "RX: " << rxDiff << ", TX: " << txDiff);
+	//LOG_DEBUG(logger, "RX: " << rxDiff << ", TX: " << txDiff);
 
 	sensor->setData(rxDiff);
 	tag->txSensor->setData(txDiff);

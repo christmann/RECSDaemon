@@ -28,7 +28,6 @@
 #include "Config.h"
 
 using namespace std;
-using namespace log4cxx;
 
 Config* Config::mInstance = NULL;
 LoggerPtr Config::logger(Logger::getLogger("Config"));
@@ -44,14 +43,14 @@ Config::Config() {
 #ifdef CONFIG_FILE_ACCESS
 	if (!ini_start(CONFIG_FILE)) {
 		mNoSaveMode = true;
-		LOG4CXX_WARN(logger, "Could not load config file, will not save configuration changes!");
+		LOG_WARN(logger, "Could not load config file, will not save configuration changes!");
 	} else {
-		LOG4CXX_INFO(logger, CONFIG_FILE << " loaded");
+		LOG_INFO(logger, CONFIG_FILE << " loaded");
 		mNoSaveMode = false;
 	}
 #else
 	mNoSaveMode = true;
-	LOG4CXX_WARN(logger, "Do not load config file, use default values!");
+	LOG_WARN(logger, "Do not load config file, use default values!");
 #endif
 	mConfigChanged = false;
 	mListeners = new list<ConfigChangeListener*>();
@@ -59,7 +58,7 @@ Config::Config() {
 }
 
 Config::~Config() {
-	LOG4CXX_DEBUG(logger, "Shutting down...");
+	LOG_DEBUG(logger, "Shutting down...");
 	mListeners->clear();
 	delete mListeners;
 	if (mConfigChanged && !mNoSaveMode) {
@@ -77,7 +76,7 @@ void Config::saveConfig() {
 		save();
 		mConfigChanged = false;
 	} else {
-		LOG4CXX_WARN(logger, "NoSaveMode enabled, will not store configuration!");
+		LOG_WARN(logger, "NoSaveMode enabled, will not store configuration!");
 	}
 }
 

@@ -29,7 +29,6 @@
 #include "daemon_msgs.h"
 
 using namespace std;
-using namespace log4cxx;
 
 LoggerPtr DummySensor::logger;
 
@@ -81,6 +80,6 @@ ISensorUnit DummySensor::getUnit(void) {
 	return UNIT_DIMENSIONLESS;
 }
 
-log4cxx::LoggerPtr DummySensor::getLogger(void) {
+LoggerPtr DummySensor::getLogger(void) {
 	return logger;
 }

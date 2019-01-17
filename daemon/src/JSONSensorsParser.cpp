@@ -28,7 +28,6 @@
 #include <daemon_msgs.h>
 
 using namespace std;
-using namespace log4cxx;
 
 LoggerPtr JSONSensorsParser::logger(Logger::getLogger("JSONSensorsParser"));
 
@@ -54,18 +53,18 @@ JSONSensorsParser::SensorsMap JSONSensorsParser::getSensors(void) {
 	string sensorsDescriptionString = mSensorProvider->getSensorsDescription();
 	json::Value sensorsDescription = json::Deserialize(sensorsDescriptionString);
 	if (sensorsDescription.GetType() == json::NULLVal) {
-		LOG4CXX_ERROR(logger, "Could not parse sensors description for JSONSensorProvider " << mName);
+		LOG_ERROR(logger, "Could not parse sensors description for JSONSensorProvider " << mName);
 		return mSensors;
 	}
 
-	LOG4CXX_DEBUG(logger, "Found " << sensorsDescription.size() << " sensors in description");
+	LOG_DEBUG(logger, "Found " << sensorsDescription.size() << " sensors in description");
 	for (uint16_t i = 0; i < sensorsDescription.size(); ++i) {
 		json::Value sensor = sensorsDescription[i];
 		if (sensor.GetType() == json::ObjectVal) {
 			if (sensor.HasKey("name") && sensor.HasKey("dataType")) {
 				string name = sensor["name"];
 				if (name.length() > SENSOR_NAME_LENGTH) {
-					LOG4CXX_ERROR(logger, "sensorName '" << name << "' too long, max. " << SENSOR_NAME_LENGTH << " chars allowed!");
+					LOG_ERROR(logger, "sensorName '" << name << "' too long, max. " << SENSOR_NAME_LENGTH << " chars allowed!");
 					continue;
 				}
 
@@ -93,11 +92,11 @@ JSONSensorsParser::SensorsMap JSONSensorsParser::getSensors(void) {
 						std::istringstream ss(sensor["maxDataSize"]);
 						ss >> maxDataSize;
 					} else {
-						LOG4CXX_ERROR(logger, "Required property 'maxDataSize' missing");
+						LOG_ERROR(logger, "Required property 'maxDataSize' missing");
 						continue;
 					}
 				} else {
-					LOG4CXX_ERROR(logger, "Invalid 'type' property: Unknown type '" << dataTypeStr << "'");
+					LOG_ERROR(logger, "Invalid 'type' property: Unknown type '" << dataTypeStr << "'");
 					continue;
 				}
 				ISensorUnit unit = UNIT_DIMENSIONLESS;
@@ -128,7 +127,7 @@ JSONSensorsParser::SensorsMap JSONSensorsParser::getSensors(void) {
 						lowerCriticalThreshold = thresholds[(size_t)0].ToDouble(0.0);
 						lowerWarningThreshold = thresholds[(size_t)1].ToDouble(0.0);
 					} else {
-						LOG4CXX_ERROR(logger, "Property 'lowerThresholds' is not an JSON array or smaller than two elements");
+						LOG_ERROR(logger, "Property 'lowerThresholds' is not an JSON array or smaller than two elements");
 					}
 				}
 				if (sensor.HasKey("upperThresholds")) {
@@ -138,7 +137,7 @@ JSONSensorsParser::SensorsMap JSONSensorsParser::getSensors(void) {
 						upperWarningThreshold = thresholds[(size_t)0].ToDouble(0.0);
 						upperCriticalThreshold = thresholds[(size_t)1].ToDouble(0.0);
 					} else {
-						LOG4CXX_ERROR(logger, "Property 'upperThresholds' is not an JSON array or smaller than two elements");
+						LOG_ERROR(logger, "Property 'upperThresholds' is not an JSON array or smaller than two elements");
 					}
 				}
 
@@ -157,15 +156,15 @@ JSONSensorsParser::SensorsMap JSONSensorsParser::getSensors(void) {
 
 				IRenderingType renderingType = RENDERING_TEXTUAL;
 
-				LOG4CXX_INFO(logger, "Adding sensor '" << name << "'");
+				LOG_INFO(logger, "Adding sensor '" << name << "'");
 				SensorBean* s = new SensorBean(name, dataType, maxDataSize, numberOfValues, unit, useLowerThresholds, useUpperThresholds, lowerCriticalThreshold, lowerWarningThreshold, upperWarningThreshold, upperCriticalThreshold, group, renderingType);
 				mSensors.insert(pair<string, ISensor*>(name, s));
 				mSensorsOrdered.push_back(s);
 			} else {
-				LOG4CXX_ERROR(logger, "Sensor description " << i << " is missing one or more of the required properties name and/or dataType");
+				LOG_ERROR(logger, "Sensor description " << i << " is missing one or more of the required properties name and/or dataType");
 			}
 		} else {
-			LOG4CXX_ERROR(logger, "Sensor description " << i << " is not a JSON object");
+			LOG_ERROR(logger, "Sensor description " << i << " is not a JSON object");
 		}
 	}
 
@@ -179,12 +178,12 @@ void JSONSensorsParser::updateSensors(void) {
 	}
 	json::Value sensorsData = json::Deserialize(sensorsDataString);
 	if (sensorsData.GetType() == json::NULLVal) {
-		LOG4CXX_ERROR(logger, "Could not parse sensors data for JSONSensorProvider " << mName);
+		LOG_ERROR(logger, "Could not parse sensors data for JSONSensorProvider " << mName);
 		return;
 	}
 
 	if (sensorsData.size() < mSensorsOrdered.size()) {
-		LOG4CXX_ERROR(logger, "Data does not contain enough values: Found " << sensorsData.size() << " fields, expected " << mSensorsOrdered.size());
+		LOG_ERROR(logger, "Data does not contain enough values: Found " << sensorsData.size() << " fields, expected " << mSensorsOrdered.size());
 		return;
 	}
 
@@ -194,7 +193,7 @@ void JSONSensorsParser::updateSensors(void) {
 		++i;
 
 		if (sensorValue.GetType() == json::NULLVal || sensorValue.GetType() == json::ObjectVal || sensorValue.GetType() == json::ArrayVal ) {
-			LOG4CXX_ERROR(logger, "Value for sensor " << (*iterator)->getName() << " of " << mName << "is of invalid type NULL, object or array");
+			LOG_ERROR(logger, "Value for sensor " << (*iterator)->getName() << " of " << mName << "is of invalid type NULL, object or array");
 			continue;
 		}
 
@@ -204,7 +203,7 @@ void JSONSensorsParser::updateSensors(void) {
 			} else if (sensorValue.IsNumeric()) {
 				(*iterator)->setData((uint32_t)sensorValue.ToInt());
 			} else {
-				LOG4CXX_ERROR(logger, "Value for sensor " << (*iterator)->getName() << " of " << mName << "is not numeric");
+				LOG_ERROR(logger, "Value for sensor " << (*iterator)->getName() << " of " << mName << "is not numeric");
 				continue;
 			}
 		} else {

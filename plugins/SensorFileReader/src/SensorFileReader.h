@@ -28,7 +28,7 @@
 #include <object_model.h>
 #include <BaseSensor.h>
 #include <string>
-#include <log4cxx/logger.h>
+#include <logger.h>
 #include <c_object_model.h>
 
 struct PF_ObjectParams;
@@ -49,9 +49,9 @@ public:
 	virtual const char* getDescription(void);
 	virtual ISensorUnit getUnit(void);
 
-	virtual log4cxx::LoggerPtr getLogger(void);
+	virtual LoggerPtr getLogger(void);
 
-	static log4cxx::LoggerPtr logger;
+	static LoggerPtr logger;
 
 private:
 	SensorFileReader();

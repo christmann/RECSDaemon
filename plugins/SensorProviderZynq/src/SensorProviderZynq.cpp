@@ -38,7 +38,6 @@
 #include <errno.h>
 
 using namespace std;
-using namespace log4cxx;
 
 LoggerPtr SensorProviderZynq::logger;
 IConfig* SensorProviderZynq::config;
@@ -74,7 +73,7 @@ SensorProviderZynq::SensorProviderZynq() :
 
 	mBaseAddress = config->GetInt("Plugins", "auroraMonitorBaseAddress", 0);
 	if (mBaseAddress == 0) {
-		LOG4CXX_ERROR(logger, "Base address of Aurora monitor not configured (Plugins->auroraMonitorBaseAddress)");
+		LOG_ERROR(logger, "Base address of Aurora monitor not configured (Plugins->auroraMonitorBaseAddress)");
 		return;
 	}
 
@@ -105,7 +104,7 @@ SensorProviderZynq::SensorProviderZynq() :
 		sensor = new SensorBean("Aurora bandw.", TYPE_U32, 1, 1, UNIT_BYTE_SECOND, false, false, 0, 0, 0, 0, "", RENDERING_TEXTUAL);
 		uint32_t bus_frequency = *(uint32_t*)(mMemory + mMemoryPageOffset + OFFSET_BUS_FREQUENCY);
 		uint32_t bus_width = *(uint32_t*)(mMemory + mMemoryPageOffset + OFFSET_BUS_WITH);
-		LOG4CXX_INFO(logger, "Aurora is " << bus_width << " bits wide @ " << bus_frequency << " Hz");
+		LOG_INFO(logger, "Aurora is " << bus_width << " bits wide @ " << bus_frequency << " Hz");
 		sensor->setData((uint64_t)bus_frequency * (uint64_t)bus_width / 8); // /8 because of byte/s, not bit/s
 		mSensors["Aurora bandw."] = sensor;
 	}
@@ -127,9 +126,9 @@ void SensorProviderZynq::updateLink(SensorBean* sensor) {
 		mapMemory();
 	}
 	if (mMemory != NULL) {
-		//LOG4CXX_DEBUG(logger, "Reading address " << hex << ((uint32_t*)(mMemory + mMemoryPageOffset + OFFSET_STATUS)));
+		//LOG_DEBUG(logger, "Reading address " << hex << ((uint32_t*)(mMemory + mMemoryPageOffset + OFFSET_STATUS)));
 		uint32_t status = *(uint32_t*)(mMemory + mMemoryPageOffset + OFFSET_STATUS);
-		//LOG4CXX_DEBUG(logger, "Got value 0x" << hex << status);
+		//LOG_DEBUG(logger, "Got value 0x" << hex << status);
 
 		std::stringstream ss;
 		uint8_t channel = (status & 0x20) >> 5;
@@ -213,15 +212,15 @@ void SensorProviderZynq::mapMemory() {
 
     mMemoryFd = open("/dev/mem", O_SYNC);
     if (mMemoryFd < 0) {
-    	LOG4CXX_ERROR(logger, "Could not open /dev/mem: Error " << errno);
+    	LOG_ERROR(logger, "Could not open /dev/mem: Error " << errno);
     	mMemoryFd = -1;
     	return;
     }
-	//LOG4CXX_DEBUG(logger, "Mapping 0x" << hex << (mMemoryPageOffset + DATA_2_RO_SIZE) << " bytes from page 0x" << hex << page_base << " to read address 0x" << hex << offset );
+	//LOG_DEBUG(logger, "Mapping 0x" << hex << (mMemoryPageOffset + DATA_2_RO_SIZE) << " bytes from page 0x" << hex << page_base << " to read address 0x" << hex << offset );
     mMemory = (uint8_t*)mmap(NULL, mMemoryPageOffset + REGISTERSPACE_SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE, mMemoryFd, page_base);
-	//LOG4CXX_DEBUG(logger, "Memory mapped to 0x" << hex << mMemory);
+	//LOG_DEBUG(logger, "Memory mapped to 0x" << hex << mMemory);
     if (mMemory == MAP_FAILED) {
-    	LOG4CXX_ERROR(logger, "Could not mmap memory address 0x" << hex << mBaseAddress << " (page 0x" << hex << page_base << "): Error " << errno);
+    	LOG_ERROR(logger, "Could not mmap memory address 0x" << hex << mBaseAddress << " (page 0x" << hex << page_base << "): Error " << errno);
         mMemory = NULL;
     }
 }

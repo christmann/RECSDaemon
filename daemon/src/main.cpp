@@ -24,26 +24,20 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <sstream>
 #include <vector>
 
-#include <log4cxx/logger.h>
-#include <log4cxx/logmanager.h>
-#include <log4cxx/xml/domconfigurator.h>
+#include <logger.h>
 
 #include "version.h"
 #include "Daemon.h"
 
 using namespace std;
-using namespace log4cxx;
-using namespace log4cxx::xml;
 
 int main(int argc, char **argv) {
-	// Load XML configuration file using DOMConfigurator
-	DOMConfigurator::configure("conf/log4cxx.xml");
-
 	LoggerPtr logger(Logger::getLogger("main"));
 
-	LOG4CXX_INFO(logger, "RECS daemon " << DAEMON_VERSION_MAJOR << "." << DAEMON_VERSION_MINOR << "." << DAEMON_VERSION_REVISION << " starting");
+	LOG_INFO(logger, "RECS daemon " << DAEMON_VERSION_MAJOR << "." << DAEMON_VERSION_MINOR << "." << DAEMON_VERSION_REVISION << " starting");
 
     // Loop over command-line args
 	vector<string> args(argv + 1, argv + argc);
@@ -56,12 +50,11 @@ int main(int argc, char **argv) {
         	++i;
         	if (i != args.end()) {
 				istringstream(*i) >> exitAfter;
-				LOG4CXX_INFO(logger, "exitAfter set, will exit after " << exitAfter << " update iterations");
+				LOG_INFO(logger, "exitAfter set, will exit after " << exitAfter << " update iterations");
         	}
         }
     }
 
 	int ret = (new Daemon())->run(exitAfter);
-	LogManager::shutdown();
 	return ret;
 }

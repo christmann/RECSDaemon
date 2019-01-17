@@ -38,7 +38,6 @@
 #define I2C_SPEED		400000 // Hz
 
 using namespace std;
-using namespace log4cxx;
 
 LoggerPtr Communicator::logger;
 
@@ -61,12 +60,12 @@ bool Communicator::initInterface() {
 	if (!CgosLibInitialize()) {
 		if (!CgosLibInstall(1)) {
 			// error: can't install cgos library
-			LOG4CXX_ERROR(logger, "Error: can't install CGOS library");
+			LOG_ERROR(logger, "Error: can't install CGOS library");
 			return false;
 		}
-		LOG4CXX_INFO(logger, "The driver has been installed.");
+		LOG_INFO(logger, "The driver has been installed.");
 		if (!CgosLibInitialize()) {
-			LOG4CXX_ERROR(logger, "Still could not open driver, a reboot might be required!");
+			LOG_ERROR(logger, "Still could not open driver, a reboot might be required!");
 			return false;
 		}
 	}
@@ -76,26 +75,26 @@ bool Communicator::initInterface() {
 	unsigned int dwDrvVersion = CgosLibGetDrvVersion();
 
 	if (dwLibVersion < 0x0102000A || dwDrvVersion < 0x0102000A) {
-		LOG4CXX_ERROR(logger, "Outdated CGOS Library/Driver version. Detected library version: 0x" << hex << dwLibVersion << ". Required library version: 0x0102000A. Detected driver version: 0x" << hex << dwDrvVersion << ". Required driver version: 0x0102000A");
+		LOG_ERROR(logger, "Outdated CGOS Library/Driver version. Detected library version: 0x" << hex << dwLibVersion << ". Required library version: 0x0102000A. Detected driver version: 0x" << hex << dwDrvVersion << ". Required driver version: 0x0102000A");
 		return false;
 	}
 
 	// open the cgos board
 	if (CgosBoardOpen(0, 0, 0, &mHandle)) {
 		unsigned long cnt = CgosI2CCount(mHandle); // determines the amount of available I2C interfaces
-		LOG4CXX_DEBUG(logger, cnt << " I2C busses available");
+		LOG_DEBUG(logger, cnt << " I2C busses available");
 		// navigate to the correct I2C bus
 		for (unsigned long dwUnit = 0; dwUnit < cnt; ++dwUnit) {
 			unsigned long dwType = CgosI2CType(mHandle, dwUnit);
-			LOG4CXX_DEBUG(logger, "I2C bus " << dwUnit << " is of type 0x" << hex << dwType);
+			LOG_DEBUG(logger, "I2C bus " << dwUnit << " is of type 0x" << hex << dwType);
 			if (dwType == CGOS_I2C_TYPE_PRIMARY) {
 				mBus = dwUnit;
-				LOG4CXX_DEBUG(logger, "Found primary I2C bus as bus " << mBus);
+				LOG_DEBUG(logger, "Found primary I2C bus as bus " << mBus);
 				break;
 			}
 		}
 		if (mBus == ULONG_MAX) {
-			LOG4CXX_ERROR(logger, "Could not find primary I2C bus");
+			LOG_ERROR(logger, "Could not find primary I2C bus");
 			if (mHandle) {
 				CgosBoardClose(mHandle);
 				mHandle = 0;
@@ -109,15 +108,15 @@ bool Communicator::initInterface() {
 		uint32_t maxSpeed;
 #endif
 		CgosI2CGetMaxFrequency(mHandle, mBus, &maxSpeed);
-		LOG4CXX_DEBUG(logger, "Maximum bus speed is " << maxSpeed << " Hz");
+		LOG_DEBUG(logger, "Maximum bus speed is " << maxSpeed << " Hz");
 		if (maxSpeed >= I2C_SPEED) {
 			maxSpeed = I2C_SPEED;
 			CgosI2CSetFrequency(mHandle, mBus, maxSpeed);
-			LOG4CXX_INFO(logger, "Set bus speed to " << maxSpeed << " Hz");
+			LOG_INFO(logger, "Set bus speed to " << maxSpeed << " Hz");
 		}
 	} else {
 		// error: can't open board
-		LOG4CXX_ERROR(logger, "Can't open CGOS board");
+		LOG_ERROR(logger, "Can't open CGOS board");
 		return false;
 	}
 	return true;
@@ -177,7 +176,7 @@ ssize_t Communicator::writeData(size_t offset, const void* buf, size_t count) {
 	// Prepend offset to data, then write
 	char* temp = (char*)malloc(count + 2);
 	if (temp == NULL) {
-		LOG4CXX_ERROR(logger, "Could not allocate " << (count + 2) << " bytes of memory");
+		LOG_ERROR(logger, "Could not allocate " << (count + 2) << " bytes of memory");
 		return -4;
 	}
 	temp[0] = (offset >> 8) & 0xff;

@@ -35,13 +35,11 @@
 #include "../include/daemon_msgs.h"
 #include "JSONSensorsParser.h"
 
-using namespace log4cxx;
-
 LoggerPtr SensorSet::logger(Logger::getLogger("SensorSet"));
 
 SensorSet::SensorSet() {
 	int cnt = Config::GetInstance()->GetInt("Sensors", "count", 0);
-	LOG4CXX_INFO(logger, cnt << " manual sensors configured");
+	LOG_INFO(logger, cnt << " manual sensors configured");
 	for (uint16_t i = 0; i < cnt; ++i) {
 		stringstream sensorNrStream;
 		sensorNrStream << "pluginName" << (i + 1);
@@ -56,26 +54,26 @@ SensorSet::SensorSet() {
 		string options = Config::GetInstance()->GetString("Sensors", sensorNrStream.str(), "");
 
 		if (pluginName == "" || sensorName == "") {
-			LOG4CXX_WARN(logger, "pluginName or sensorName can not be empty for sensor " << (i + 1) << ", skipping!");
+			LOG_WARN(logger, "pluginName or sensorName can not be empty for sensor " << (i + 1) << ", skipping!");
 			continue;
 		}
 
 		if (sensorName.length() > SENSOR_NAME_LENGTH) {
-			LOG4CXX_ERROR(logger, "sensorName '" << sensorName << "' too long, max. " << SENSOR_NAME_LENGTH << " chars allowed!");
+			LOG_ERROR(logger, "sensorName '" << sensorName << "' too long, max. " << SENSOR_NAME_LENGTH << " chars allowed!");
 			continue;
 		}
 
-		LOG4CXX_INFO(logger, "Initializing sensor " << (i + 1) << ": " << pluginName << "(" << options << ") as " << sensorName);
+		LOG_INFO(logger, "Initializing sensor " << (i + 1) << ": " << pluginName << "(" << options << ") as " << sensorName);
 		ISensor* sensor = SensorFactory::createSensor(pluginName);
 
 		if (sensor != NULL) {
 			if (sensor->configure(options.c_str())) {
 				mSensorMap[sensorName] = sensor;
 			} else {
-				LOG4CXX_ERROR(logger, "Could not configure sensor " << pluginName << "!");
+				LOG_ERROR(logger, "Could not configure sensor " << pluginName << "!");
 			}
 		} else {
-			LOG4CXX_ERROR(logger, "Could not initialize sensor " << pluginName << "!");
+			LOG_ERROR(logger, "Could not initialize sensor " << pluginName << "!");
 		}
 	}
 
@@ -84,13 +82,13 @@ SensorSet::SensorSet() {
 		std::stringstream ss(SensorProviders);
 		std::string pluginName;
 		while (std::getline(ss, pluginName, ',')) {
-			LOG4CXX_INFO(logger, "Enabling sensor provider " << pluginName);
+			LOG_INFO(logger, "Enabling sensor provider " << pluginName);
 			ISensorProvider* SensorProvider = SensorProviderFactory::createSensorProvider(pluginName);
 
 			if (SensorProvider != NULL) {
 				SensorMap map =  SensorProvider->getSensors();
 				mSensorMap.insert(map.begin(), map.end());
-				LOG4CXX_INFO(logger, "Added " << map.size() << " sensors");
+				LOG_INFO(logger, "Added " << map.size() << " sensors");
 
 				delete SensorProvider;
 			}
@@ -102,7 +100,7 @@ SensorSet::SensorSet() {
 		std::stringstream ss(JSONSensorProviders);
 		std::string pluginName;
 		while (std::getline(ss, pluginName, ',')) {
-			LOG4CXX_INFO(logger, "Enabling JSON sensor provider " << pluginName);
+			LOG_INFO(logger, "Enabling JSON sensor provider " << pluginName);
 			IJSONSensorProvider* JSONSensorProvider = JSONSensorProviderFactory::createJSONSensorProvider(pluginName);
 
 			if (JSONSensorProvider != NULL) {
@@ -126,7 +124,7 @@ bool SensorSet::addJSONSensorProvider(IJSONSensorProvider* provider, string name
 	SensorMap map = jsonSensors->getSensors();
 	mSensorMap.insert(map.begin(), map.end());
 	mJSONSensorsParsers[name] = jsonSensors;
-	LOG4CXX_INFO(logger, "Added " << map.size() << " sensors");
+	LOG_INFO(logger, "Added " << map.size() << " sensors");
 	return true;
 }
 
@@ -236,7 +234,7 @@ uint8_t SensorSet::getGroupId(const char* name) {
 		return mKnownGroups[nameStr];
 	} else {
 		if (mKnownGroups.size() >= 255) {
-			LOG4CXX_ERROR(logger, "Too many groups defined, available group IDs exhausted!");
+			LOG_ERROR(logger, "Too many groups defined, available group IDs exhausted!");
 			return 0;
 		}
 		uint8_t id = mKnownGroups.size() + 1;

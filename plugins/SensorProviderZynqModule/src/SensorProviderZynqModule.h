@@ -27,7 +27,7 @@
 
 #include <object_model.h>
 #include <string>
-#include <log4cxx/logger.h>
+#include <logger.h>
 #include <c_object_model.h>
 #include <IConfig.h>
 
@@ -53,7 +53,7 @@ public:
 	virtual const char* getSensorsDescription(void);
 	virtual const char* getSensorsData(void);
 
-	static log4cxx::LoggerPtr logger;
+	static LoggerPtr logger;
 	static IConfig* config;
 
 private:

@@ -14,8 +14,6 @@
   #include <errno.h>
 #endif
 
-using namespace log4cxx;
-
 namespace Directory
 {
   LoggerPtr Iterator::logger(Logger::getLogger("Directory.Iterator"));
@@ -63,7 +61,7 @@ namespace Directory
   #ifndef WIN32
     handle_ = ::opendir(absolutePath.c_str());
     if (!handle_) {
-    	LOG4CXX_ERROR(logger, "Can't open directory " << path << ". Error code: " << errno);
+    	LOG_ERROR(logger, "Can't open directory " << path << ". Error code: " << errno);
     }
 
   #else
@@ -99,7 +97,7 @@ namespace Directory
   #ifndef WIN32
     int res = ::closedir(handle_);
     if (!res == 0) {
-    	LOG4CXX_ERROR(logger, "Couldn't close directory. Error code: " << errno);
+    	LOG_ERROR(logger, "Couldn't close directory. Error code: " << errno);
     }
   #else
     if(handle_) {
@@ -132,7 +130,7 @@ namespace Directory
     errno = 0;
     struct dirent * p = ::readdir(handle_);
     if (errno) {
-    	LOG4CXX_ERROR(logger, "Couldn't read next dir entry. Error code: " << errno);
+    	LOG_ERROR(logger, "Couldn't read next dir entry. Error code: " << errno);
     }
     
     if (!p)

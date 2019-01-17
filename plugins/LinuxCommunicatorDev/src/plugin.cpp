@@ -25,7 +25,7 @@
 #include <cstddef>
 #include "Communicator.h"
 
-#include <log4cxx/logger.h>
+#include <logger.h>
 #include <IConfig.h>
 
 #ifdef WIN32
@@ -52,7 +52,7 @@ extern "C" PLUGIN_API PF_ExitFunc PF_initPlugin(const PF_PlatformServices * para
 	if (res < 0) {
 		return NULL;
 	}
-	Communicator::logger = (log4cxx::Logger*)params->invokeService((const uint8_t *)"getLogger", (void*)"LinuxCommunicatorDev");
+	Communicator::logger = *((LoggerPtr*)params->invokeService((const uint8_t *)"getLogger", (void*)"LinuxCommunicatorDev"));
 	Communicator::config = static_cast<IConfig*>(params->invokeService((const uint8_t *)"getConfig", NULL));
 
 	return ExitFunc;

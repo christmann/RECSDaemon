@@ -46,7 +46,6 @@
 #endif
 
 using namespace std;
-using namespace log4cxx;
 
 LoggerPtr SensorProviderSystem::logger;
 uint64_t SensorProviderSystem::mLastTotalTime = 0;
@@ -136,7 +135,7 @@ void SensorProviderSystem::updateCpuUtilization(SensorBean* sensor) {
 		}
 		myfile.close();
 	} else {
-		LOG4CXX_ERROR(logger, "Could not read file '/proc/stat'");
+		LOG_ERROR(logger, "Could not read file '/proc/stat'");
 		return;
 	}
 #endif
@@ -152,7 +151,7 @@ void SensorProviderSystem::updateCpuUtilization(SensorBean* sensor) {
 
     double utilization = (work_over_period / total_over_period) * 100.0;
 
-	//LOG4CXX_DEBUG(logger, "CPU: " << utilization << " %");
+	//LOG_DEBUG(logger, "CPU: " << utilization << " %");
 
 	sensor->setData(utilization);
 
@@ -185,13 +184,13 @@ void SensorProviderSystem::updateMemoryFree(SensorBean* sensor) {
 		}
 		myfile.close();
 	} else {
-		LOG4CXX_ERROR(logger, "Could not read file '/proc/meminfo'");
+		LOG_ERROR(logger, "Could not read file '/proc/meminfo'");
 		return;
 	}
 
 	freeMem *= 1024;
 #endif
-	//LOG4CXX_DEBUG(logger, "Free Mem: " << freeMem << " bytes");
+	//LOG_DEBUG(logger, "Free Mem: " << freeMem << " bytes");
 
 	sensor->setData(freeMem);
 }
@@ -208,7 +207,7 @@ void SensorProviderSystem::updateDiskFree(SensorBean* sensor) {
 	statvfs("/", &stat);
 	freeDisk = stat.f_bsize * stat.f_bavail;
 #endif
-	//LOG4CXX_DEBUG(logger, "Free Disk: " << freeDisk << " bytes");
+	//LOG_DEBUG(logger, "Free Disk: " << freeDisk << " bytes");
 
 	sensor->setData(freeDisk);
 }

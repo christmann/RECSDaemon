@@ -27,7 +27,7 @@
 #define SENSORSET_H_
 
 #include <iostream>
-#include <log4cxx/logger.h>
+#include <logger.h>
 #include <map>
 #include <vector>
 #include "../include/object_model.h"
@@ -63,7 +63,7 @@ private:
 	size_t mSize;
 	uint8_t* mData;
 
-	static log4cxx::LoggerPtr logger;
+	static LoggerPtr logger;
 };
 
 #endif /* TELNETSERVER_H_ */

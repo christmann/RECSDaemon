@@ -36,7 +36,6 @@
 #define SLOTS			1
 
 using namespace std;
-using namespace log4cxx;
 
 LoggerPtr CommunicatorTCP::logger;
 IConfig* CommunicatorTCP::config;
@@ -59,7 +58,7 @@ CommunicatorTCP::CommunicatorTCP() : mBaseboardID(0), mClient(NULL), mData(NULL)
 bool CommunicatorTCP::initInterface() {
 	mBaseboardID = config->GetInt("Comm", "baseboard", -1);
 	if (mBaseboardID == -1) {
-		LOG4CXX_ERROR(logger, "No baseboard ID configured (Comm->baseboard)");
+		LOG_ERROR(logger, "No baseboard ID configured (Comm->baseboard)");
 		return false;
 	}
 
@@ -69,13 +68,13 @@ bool CommunicatorTCP::initInterface() {
 
 	mData = (uint8_t*)malloc(MEMORY_SIZE);
 	if (mData == NULL) {
-		LOG4CXX_ERROR(logger, "Failed to allocate " << MEMORY_SIZE << " bytes shared memory buffer");
+		LOG_ERROR(logger, "Failed to allocate " << MEMORY_SIZE << " bytes shared memory buffer");
 		return false;
 	}
 	memset(mData, 0, MEMORY_SIZE);
 	mReceiveBuffer = (uint8_t*)malloc(MEMORY_SIZE);
 	if (mReceiveBuffer == NULL) {
-		LOG4CXX_ERROR(logger, "Failed to allocate " << MEMORY_SIZE << " bytes receive buffer");
+		LOG_ERROR(logger, "Failed to allocate " << MEMORY_SIZE << " bytes receive buffer");
 		return false;
 	}
 
@@ -168,7 +167,7 @@ ssize_t CommunicatorTCP::writeData(size_t offset, const void* buf, size_t count)
 			if (invokeService != NULL) {
 				int8_t slot;
 				invokeService((const uint8_t *)"getSlot", &slot);
-				//LOG4CXX_INFO(logger, "Got slot " << (uint32_t)slot << " from daemon");
+				//LOG_INFO(logger, "Got slot " << (uint32_t)slot << " from daemon");
 				hdr.node = slot;
 			}
 			hdr.size = htons(count);
@@ -182,7 +181,7 @@ ssize_t CommunicatorTCP::writeData(size_t offset, const void* buf, size_t count)
 				mClient = NULL;
 			}
 		} else {
-			LOG4CXX_INFO(logger, "Trying to reconnect to controller...");
+			LOG_INFO(logger, "Trying to reconnect to controller...");
 			if (tryConnect()) {
 				if (invokeService != NULL) {
 					invokeService((const uint8_t *)"resetStatemachine", NULL);
@@ -198,7 +197,7 @@ ssize_t CommunicatorTCP::writeData(size_t offset, const void* buf, size_t count)
 bool CommunicatorTCP::tryConnect() {
 	string controller = config->GetString("Comm", "controller", "");
 	if (controller.empty()) {
-		LOG4CXX_ERROR(logger, "Controller IP address not configured (Comm->controller)");
+		LOG_ERROR(logger, "Controller IP address not configured (Comm->controller)");
 		return false;
 	}
 	int port = config->GetInt("Comm", "port", 2022);
@@ -208,11 +207,11 @@ bool CommunicatorTCP::tryConnect() {
 	}
 	mClient = new NetworkClient(NetworkClient::resolveHost(controller), port, logger);
 	if (mClient == NULL || !mClient->isConnected()) {
-		LOG4CXX_ERROR(logger, "Could not connect to controller");
+		LOG_ERROR(logger, "Could not connect to controller");
 		delete mClient;
 		mClient = NULL;
 		return false;
 	}
-	LOG4CXX_INFO(logger, "Connected to controller");
+	LOG_INFO(logger, "Connected to controller");
 	return true;
 }

@@ -37,15 +37,13 @@ using namespace std;
 #  endif
 #endif
 
-using namespace log4cxx;
-
 LoggerPtr Thread::logger(Logger::getLogger("Thread"));
 
 Thread::Thread() : mArg(NULL) {
   running = false;
   mThreadId = pthread_self(); // Initialize mThreadId to a meaningful value
   if(pthread_mutex_init(&mRunningMutex, NULL)) {
-    LOG4CXX_ERROR(logger, "Could not initialize mutex!");
+    LOG_ERROR(logger, "Could not initialize mutex!");
   }
 }
 
@@ -61,7 +59,7 @@ int Thread::start(void *arg) {
 
   int code = pthread_create(&mThreadId, NULL, &Thread::entryPoint, this);
   if (code > 0) {
-	  LOG4CXX_ERROR(logger, "start: pthread create error");
+	  LOG_ERROR(logger, "start: pthread create error");
 	  return false;
   }
   return code;

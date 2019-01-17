@@ -27,7 +27,7 @@
 
 #include <object_model.h>
 #include <string>
-#include <log4cxx/logger.h>
+#include <logger.h>
 
 #ifndef CGOSAPI
 #ifndef _WIN32
@@ -55,7 +55,7 @@ public:
 	virtual ssize_t readData(size_t offset, void* buf, size_t count);
 	virtual ssize_t writeData(size_t offset, const void* buf, size_t count);
 
-	static log4cxx::LoggerPtr logger;
+	static LoggerPtr logger;
 
 private:
 	Communicator();

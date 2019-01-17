@@ -27,7 +27,7 @@
 
 #include <stdint.h>
 #include <string>
-#include <log4cxx/logger.h>
+#include <logger.h>
 
 #ifdef WIN32
   #include <winsock2.h>
@@ -49,7 +49,7 @@
 
 class NetworkClient {
 public:
-  NetworkClient(uint32_t address, uint16_t port, log4cxx::LoggerPtr log);
+  NetworkClient(uint32_t address, uint16_t port, LoggerPtr log);
   ~NetworkClient();
 
   bool sendData(std::string data);
@@ -71,7 +71,7 @@ private:
   struct sockaddr_in mDestination;
 
   static uint32_t mInstanceCounter;
-  static log4cxx::LoggerPtr logger;
+  static LoggerPtr logger;
 };
 
 #endif /*NETWORKCLIENT_H_*/

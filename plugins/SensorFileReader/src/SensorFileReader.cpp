@@ -31,7 +31,6 @@
 #include "daemon_msgs.h"
 
 using namespace std;
-using namespace log4cxx;
 
 LoggerPtr SensorFileReader::logger;
 
@@ -58,7 +57,7 @@ bool SensorFileReader::configure(const char* data) {
 	string options(data);
 	mPath = getOption(options, "path");
 	if (mPath == "") {
-		LOG4CXX_ERROR(logger, "'path' attribute empty, can not initialize");
+		LOG_ERROR(logger, "'path' attribute empty, can not initialize");
 		return false;
 	}
 	string dataType = getOption(options, "type");
@@ -76,11 +75,11 @@ bool SensorFileReader::configure(const char* data) {
 			if ((i >> value)) {
 				mMultiplier = value;
 			} else {
-				LOG4CXX_WARN(logger, "Invalid 'multiplier' attribute: Could not parse '" << multiplier << "' as double");
+				LOG_WARN(logger, "Invalid 'multiplier' attribute: Could not parse '" << multiplier << "' as double");
 			}
 		}
 	} else {
-		LOG4CXX_ERROR(logger, "Invalid 'type' attribute: Unknown type '" << dataType << "'");
+		LOG_ERROR(logger, "Invalid 'type' attribute: Unknown type '" << dataType << "'");
 		return false;
 	}
 
@@ -122,7 +121,7 @@ bool SensorFileReader::getData(uint8_t* data) {
 		}
 		myfile.close();
 	} else {
-		LOG4CXX_ERROR(logger, "Could not read file '" << mPath << "'");
+		LOG_ERROR(logger, "Could not read file '" << mPath << "'");
 		return false;
 	}
 
@@ -135,7 +134,7 @@ bool SensorFileReader::getData(uint8_t* data) {
 				data[0] = (uint8_t)(value & 0xff);
 				return true;
 			} else {
-				LOG4CXX_WARN(logger, "Could not parse file content as uint8_t");
+				LOG_WARN(logger, "Could not parse file content as uint8_t");
 				return false;
 			}
 		} else if (mDataType == TYPE_U16) {
@@ -145,7 +144,7 @@ bool SensorFileReader::getData(uint8_t* data) {
 				data[1] = value & 0xff;
 				return true;
 			} else {
-				LOG4CXX_WARN(logger, "Could not parse file content as uint16_t");
+				LOG_WARN(logger, "Could not parse file content as uint16_t");
 				return false;
 			}
 		} else if (mDataType == TYPE_FLOAT) {
@@ -158,7 +157,7 @@ bool SensorFileReader::getData(uint8_t* data) {
 				memcpy(data, bytes, 8);
 				return true;
 			} else {
-				LOG4CXX_WARN(logger, "Could not parse file content as double");
+				LOG_WARN(logger, "Could not parse file content as double");
 				return false;
 			}
 		}
@@ -175,6 +174,6 @@ ISensorUnit SensorFileReader::getUnit(void) {
 	return mUnit;
 }
 
-log4cxx::LoggerPtr SensorFileReader::getLogger(void) {
+LoggerPtr SensorFileReader::getLogger(void) {
 	return logger;
 }

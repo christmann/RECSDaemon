@@ -31,7 +31,7 @@
 #include <string>
 #include <cstdlib>
 #include <cstring>
-#include <log4cxx/logger.h>
+#include <logger.h>
 #include <c_object_model.h>
 // For htonl
 #ifdef WIN32
@@ -101,8 +101,8 @@ public:
 		return mName;
 	}
 
-	virtual log4cxx::LoggerPtr getLogger(void) {
-		static log4cxx::LoggerPtr logger;
+	virtual LoggerPtr getLogger(void) {
+		static LoggerPtr logger;
 		return logger;
 	}
 

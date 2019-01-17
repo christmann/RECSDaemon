@@ -48,7 +48,6 @@
 #define CHRISTMANN_MAC_3	0xD5
 #define CHRISTMANN_MAC_4	0x56
 
-using namespace log4cxx;
 using namespace std;
 
 LoggerPtr Node::logger(Logger::getLogger("Node"));
@@ -56,10 +55,10 @@ LoggerPtr Node::logger(Logger::getLogger("Node"));
 Node::Node(string id, uint8_t baseboardID, uint8_t slot, NodeType nodeType) : mBaseboardID(baseboardID), mSlot(slot), mID(id), mNodeType(nodeType) {
 	mSensors = new SensorSet();
 	list<Node::AdapterInfo> adapters = getNetworkAdapters();
-	LOG4CXX_DEBUG(logger, "Hostname: " << getHostName());
-	LOG4CXX_DEBUG(logger, "Detected " << adapters.size() << " network adapters");
+	LOG_DEBUG(logger, "Hostname: " << getHostName());
+	LOG_DEBUG(logger, "Detected " << adapters.size() << " network adapters");
 	for (list<Node::AdapterInfo>::iterator iterator = adapters.begin(); iterator != adapters.end(); ++iterator) {
-		LOG4CXX_DEBUG(logger, 	"Addr: " << (int)iterator->ipAddress[0] <<
+		LOG_DEBUG(logger, 	"Addr: " << (int)iterator->ipAddress[0] <<
 									"." << (int)iterator->ipAddress[1] <<
 									"." << (int)iterator->ipAddress[2] <<
 									"." << (int)iterator->ipAddress[3] <<
@@ -76,7 +75,7 @@ Node::Node(string id, uint8_t baseboardID, uint8_t slot, NodeType nodeType) : mB
 	}
 	Node::AdapterInfo compute = getComputeAdapter(adapters);
 	if (compute.ipAddress[0] != 0) {
-		LOG4CXX_DEBUG(logger, 	"Compute adapter: Addr: " << (int)compute.ipAddress[0] <<
+		LOG_DEBUG(logger, 	"Compute adapter: Addr: " << (int)compute.ipAddress[0] <<
 									"." << (int)compute.ipAddress[1] <<
 									"." << (int)compute.ipAddress[2] <<
 									"." << (int)compute.ipAddress[3] <<
@@ -91,11 +90,11 @@ Node::Node(string id, uint8_t baseboardID, uint8_t slot, NodeType nodeType) : mB
 									":" << setw(2) << (int)compute.macAddress[4] <<
 									":" << setw(2) << (int)compute.macAddress[5]);
 	} else {
-		LOG4CXX_DEBUG(logger, "No compute adapter found");
+		LOG_DEBUG(logger, "No compute adapter found");
 	}
 	Node::AdapterInfo management = getManagementAdapter(adapters);
 	if (management.ipAddress[0] != 0) {
-		LOG4CXX_DEBUG(logger, 	"Management adapter: Addr: " << (int)management.ipAddress[0] <<
+		LOG_DEBUG(logger, 	"Management adapter: Addr: " << (int)management.ipAddress[0] <<
 									"." << (int)management.ipAddress[1] <<
 									"." << (int)management.ipAddress[2] <<
 									"." << (int)management.ipAddress[3] <<
@@ -110,7 +109,7 @@ Node::Node(string id, uint8_t baseboardID, uint8_t slot, NodeType nodeType) : mB
 									":" << setw(2) << (int)management.macAddress[4] <<
 									":" << setw(2) << (int)management.macAddress[5]);
 	} else {
-		LOG4CXX_DEBUG(logger, "No management adapter found");
+		LOG_DEBUG(logger, "No management adapter found");
 	}
 }
 
@@ -135,7 +134,7 @@ uint8_t Node::getSlot() {
 }
 
 string Node::executeCommand(string command, string parameters) {
-	LOG4CXX_DEBUG(logger, "Executing command: '" << command << "', parameters: '" << parameters << "'");
+	LOG_DEBUG(logger, "Executing command: '" << command << "', parameters: '" << parameters << "'");
 
 	if (command == "shutdown") {
 		return shutdown(true);
@@ -149,12 +148,12 @@ string Node::executeCommand(string command, string parameters) {
 }
 
 string Node::shutdown(bool poweroff) {
-	LOG4CXX_INFO(logger, "Shutting down system...");
+	LOG_INFO(logger, "Shutting down system...");
 #ifndef WIN32
 	if (poweroff) {
 		int ret = system("shutdown -P now");
 		if (ret) {
-			LOG4CXX_ERROR(logger, "Could not execute shutdown, maybe missing permission?");
+			LOG_ERROR(logger, "Could not execute shutdown, maybe missing permission?");
 			return "failed";
 		}
 		// Hardcore version: Directly shut down kernel
@@ -163,7 +162,7 @@ string Node::shutdown(bool poweroff) {
 	} else {
 		int ret = system("reboot");
 		if (ret) {
-			LOG4CXX_ERROR(logger, "Could not execute reboot, maybe missing permission?");
+			LOG_ERROR(logger, "Could not execute reboot, maybe missing permission?");
 			return "failed";
 		}
 	}
@@ -313,14 +312,14 @@ list<Node::AdapterInfo> Node::getNetworkAdapters() {
 
 	int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
 	if (sock == -1) {
-		LOG4CXX_ERROR(logger, "Could not create socket");
+		LOG_ERROR(logger, "Could not create socket");
 		return adapters;
 	};
 
 	ifc.ifc_len = sizeof(buf);
 	ifc.ifc_buf = buf;
 	if (ioctl(sock, SIOCGIFCONF, &ifc) == -1) {
-		LOG4CXX_ERROR(logger, "Could not get list of interface addresses (SIOCGIFCONF)");
+		LOG_ERROR(logger, "Could not get list of interface addresses (SIOCGIFCONF)");
 		return adapters;
 	}
 
@@ -344,7 +343,7 @@ list<Node::AdapterInfo> Node::getNetworkAdapters() {
 				adapters.push_back(info);
 			}
 		} else {
-			LOG4CXX_ERROR(logger, "Could not get interface flags (SIOCGIFFLAGS)");
+			LOG_ERROR(logger, "Could not get interface flags (SIOCGIFFLAGS)");
 		}
 	}
 #else
@@ -353,7 +352,7 @@ list<Node::AdapterInfo> Node::getNetworkAdapters() {
 
     AdapterInfo = (IP_ADAPTER_INFO *)malloc(sizeof(IP_ADAPTER_INFO));
     if (AdapterInfo == NULL) {
-    	LOG4CXX_ERROR(logger, "Could not allocate IP_ADAPTER_INFO");
+    	LOG_ERROR(logger, "Could not allocate IP_ADAPTER_INFO");
     	return adapters;
     }
 
@@ -362,7 +361,7 @@ list<Node::AdapterInfo> Node::getNetworkAdapters() {
 		free(AdapterInfo);
 		AdapterInfo = (IP_ADAPTER_INFO *)malloc(dwBufLen);
 		if (AdapterInfo == NULL) {
-			LOG4CXX_ERROR(logger, "Could not allocate IP_ADAPTER_INFO (2nd)");
+			LOG_ERROR(logger, "Could not allocate IP_ADAPTER_INFO (2nd)");
 			return adapters;
 		}
 	}
@@ -423,7 +422,7 @@ string Node::getJSONMonitoringData(Daemon* daemon) {
 		}
 	}
 	if (mMonitoringDataOffset == 0) { // Still not found
-		LOG4CXX_ERROR(logger, "Monitoring data chunk not found!");
+		LOG_ERROR(logger, "Monitoring data chunk not found!");
 		return "";
 	}
 	BB_Monitoring mon;
@@ -434,7 +433,7 @@ string Node::getJSONMonitoringData(Daemon* daemon) {
 		for (uint8_t i = 0; i < read; ++i) {
 			bytes << std::setw(2) << std::hex << (uint16_t)(((char *)&mon)[i] & 0xff) << " ";
 		}
-		LOG4CXX_DEBUG(logger, "Read " << read << " bytes of monitoring data: " << bytes.str()); */
+		LOG_DEBUG(logger, "Read " << read << " bytes of monitoring data: " << bytes.str()); */
 		std::ostringstream oss;
 		oss << "[\r\n";
 		oss << "{\"name\": \"nodeCurrent\", \"value\": " << (fromLitteEndian(mon.current[2 + mSlot]) / 1000.0) << ", \"unit\": \"A\"},\r\n";

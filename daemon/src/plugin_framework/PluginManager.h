@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <map>
-#include <log4cxx/logger.h>
+#include <logger.h>
 #include "plugin.h"
 
 class DynamicLibrary;
@@ -49,7 +49,7 @@ private:
   RegistrationMap     exactMatchMap_;   // register exact-match object types 
   RegistrationVec     wildCardVec_;     // wild card ('*') object types
 
-  static log4cxx::LoggerPtr logger;
+  static LoggerPtr logger;
 };
 
 

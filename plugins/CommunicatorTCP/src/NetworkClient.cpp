@@ -39,7 +39,6 @@
 #include "NetworkClient.h"
 
 using namespace std;
-using namespace log4cxx;
 
 LoggerPtr NetworkClient::logger;
 uint32_t NetworkClient::mInstanceCounter = 0;
@@ -62,7 +61,7 @@ NetworkClient::NetworkClient(uint32_t address, uint16_t port, LoggerPtr log) {
 	//lint -e{641} Enum to int
 	mSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (mSocket == INVALID_SOCKET) {
-		LOG4CXX_ERROR(logger, "Unable to create socket!");
+		LOG_ERROR(logger, "Unable to create socket!");
 	}
 
 	// Set address and bind to socket
@@ -70,7 +69,7 @@ NetworkClient::NetworkClient(uint32_t address, uint16_t port, LoggerPtr log) {
 	mDestination.sin_port = htons(port);
 	mDestination.sin_addr.s_addr = htonl(address);
 	if (connect(mSocket, (struct sockaddr *) &mDestination, (socklen_t) sizeof(struct sockaddr_in)) == SOCKET_ERROR) {
-		LOG4CXX_ERROR(logger, "Unable to connect!");
+		LOG_ERROR(logger, "Unable to connect!");
 	#ifdef WIN32
 		closesocket(mSocket);
 	#else
@@ -112,7 +111,7 @@ bool NetworkClient::sendData(const char* data, size_t length) {
 	//lint --e(713)
 	cnt = send(mSocket, data, length, 0);
 	if (cnt < 0) {
-		LOG4CXX_ERROR(logger, "Error in send: " << errno);
+		LOG_ERROR(logger, "Error in send: " << errno);
 		return false;
 	}
 	return true;
@@ -139,7 +138,7 @@ size_t NetworkClient::receiveData(char* data, size_t maxLength,
 	// Perform select operation to block until a port is ready
 	cnt = select(notused, &setRead, NULL, NULL, timeout);
 	if (cnt == SOCKET_ERROR) {
-		LOG4CXX_ERROR(logger, "select returned an error!");
+		LOG_ERROR(logger, "select returned an error!");
 	}
 
 	// Check if at least one port has valid data
@@ -178,7 +177,7 @@ void NetworkClient::initWinsocks() {
 	wVersionRequested = 2; // 2.0 and above version of WinSock
 	err = WSAStartup(wVersionRequested, &wsaData);
 	if (err != 0) {
-		LOG4CXX_ERROR(logger, "Could not find a usable WinSock DLL!");
+		LOG_ERROR(logger, "Could not find a usable WinSock DLL!");
 	}
 #endif
 }
@@ -194,10 +193,10 @@ uint16_t NetworkClient::getRemotePort() {
 uint32_t NetworkClient::getInterfaceIP() const {
 	char ac[80];
 	if (gethostname(ac, sizeof(ac)) == SOCKET_ERROR) {
-		LOG4CXX_ERROR(logger, "Error getting local host name: " << errno);
+		LOG_ERROR(logger, "Error getting local host name: " << errno);
 		return 0;
 	}
-	LOG4CXX_INFO(logger, "Host name is " << ac);
+	LOG_INFO(logger, "Host name is " << ac);
 
 	struct addrinfo hints, *result, *res;
 	memset(&hints, 0, sizeof(hints));
@@ -206,7 +205,7 @@ uint32_t NetworkClient::getInterfaceIP() const {
 	hints.ai_family = AF_INET;
 
 	if (getaddrinfo(ac, NULL, &hints, &result) != 0) {
-		LOG4CXX_ERROR(logger, "Error getting addresses: " << errno);
+		LOG_ERROR(logger, "Error getting addresses: " << errno);
 		return 0;
 	}
 

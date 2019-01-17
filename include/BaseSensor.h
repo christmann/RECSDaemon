@@ -27,7 +27,8 @@
 
 #include <object_model.h>
 #include <string>
-#include <log4cxx/logger.h>
+#include <sstream>
+#include <logger.h>
 
 using namespace std;
 
@@ -44,7 +45,7 @@ public:
 	virtual const char* getDescription(void) = 0;
 	virtual ISensorUnit getUnit(void) = 0;
 
-	virtual log4cxx::LoggerPtr getLogger(void) = 0;
+	virtual LoggerPtr getLogger(void) = 0;
 
 	virtual bool configure(const char* data) {
 		string dataStr(data);
@@ -54,7 +55,7 @@ public:
 			if ((i >> mLowerCriticalThreshold)) {
 				mUseLowerThresholds = true;
 			} else {
-				LOG4CXX_WARN(getLogger(), "Could not parse lowerCriticalThreshold '" << ret << "' as double");
+				LOG_WARN(getLogger(), "Could not parse lowerCriticalThreshold '" << ret << "' as double");
 			}
 		}
 		ret = getOption(dataStr, "lowerWarningThreshold");
@@ -63,7 +64,7 @@ public:
 			if ((i >> mLowerWarningThreshold)) {
 				mUseLowerThresholds = true;
 			} else {
-				LOG4CXX_WARN(getLogger(), "Could not parse lowerWarningThreshold '" << ret << "' as double");
+				LOG_WARN(getLogger(), "Could not parse lowerWarningThreshold '" << ret << "' as double");
 			}
 		}
 
@@ -73,7 +74,7 @@ public:
 			if ((i >> mUpperWarningThreshold)) {
 				mUseUpperThresholds = true;
 			} else {
-				LOG4CXX_WARN(getLogger(), "Could not parse upperWarningThreshold '" << ret << "' as double");
+				LOG_WARN(getLogger(), "Could not parse upperWarningThreshold '" << ret << "' as double");
 			}
 		}
 		ret = getOption(dataStr, "upperCriticalThreshold");
@@ -82,7 +83,7 @@ public:
 			if ((i >> mUpperCriticalThreshold)) {
 				mUseUpperThresholds = true;
 			} else {
-				LOG4CXX_WARN(getLogger(), "Could not parse upperCriticalThreshold '" << ret << "' as double");
+				LOG_WARN(getLogger(), "Could not parse upperCriticalThreshold '" << ret << "' as double");
 			}
 		}
 		return true;

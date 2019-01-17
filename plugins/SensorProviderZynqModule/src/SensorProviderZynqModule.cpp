@@ -40,7 +40,6 @@
 #define TIMEOUT_US	100000
 
 using namespace std;
-using namespace log4cxx;
 
 LoggerPtr SensorProviderZynqModule::logger;
 IConfig* SensorProviderZynqModule::config;
@@ -68,7 +67,7 @@ SensorProviderZynqModule::SensorProviderZynqModule() {
 #endif
 	string comPort = config->GetString("Plugins", "zynqSerialPort", "");
 	if (comPort == "") {
-		LOG4CXX_ERROR(logger, "No serial port configured (Plugins->zynqSerialPort)");
+		LOG_ERROR(logger, "No serial port configured (Plugins->zynqSerialPort)");
 		return;
 	}
 	InitComPort(comPort);
@@ -98,7 +97,7 @@ bool SensorProviderZynqModule::InitComPort(string device) {
 
     struct termios newComSettings;
     if (tcgetattr(mComFileDescriptor, &mOldComSettings) != 0) { // save current port settings
-    	LOG4CXX_ERROR(logger, "Error reading current port settings!");
+    	LOG_ERROR(logger, "Error reading current port settings!");
     	close(mComFileDescriptor);
     	mComFileDescriptor = -1;
     	return false;
@@ -123,7 +122,7 @@ bool SensorProviderZynqModule::InitComPort(string device) {
 	GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 
 	if ( INVALID_HANDLE_VALUE == mComFileDescriptor) {
-		LOG4CXX_ERROR(logger, "Could not open COM port " << device << ", error " << GetLastError());
+		LOG_ERROR(logger, "Could not open COM port " << device << ", error " << GetLastError());
 		return false;
 	}
 
@@ -132,15 +131,15 @@ bool SensorProviderZynqModule::InitComPort(string device) {
 	memset(&port, 0, sizeof(port));
 	port.DCBlength = sizeof(port);
 	if (!GetCommState(mComFileDescriptor, &port)) {
-		LOG4CXX_ERROR(logger, "Could not get current port settings, error " << GetLastError());
+		LOG_ERROR(logger, "Could not get current port settings, error " << GetLastError());
 		return false;
 	}
 	if (!BuildCommDCB("baud=115200 parity=n data=8 stop=1", &port)) {
-		LOG4CXX_ERROR(logger, "Could not build new port settings");
+		LOG_ERROR(logger, "Could not build new port settings");
 		return false;
 	}
 	if (!SetCommState(mComFileDescriptor, &port)) {
-		LOG4CXX_ERROR(logger, "Could not adjust port settings");
+		LOG_ERROR(logger, "Could not adjust port settings");
 		return false;
 	}
 
@@ -151,7 +150,7 @@ bool SensorProviderZynqModule::InitComPort(string device) {
     timeouts.WriteTotalTimeoutMultiplier = 1;
     timeouts.WriteTotalTimeoutConstant = TIMEOUT_US / 1000;
     if (!SetCommTimeouts(mComFileDescriptor, &timeouts)) {
-		LOG4CXX_ERROR(logger, "Could not set port timeouts, error " << GetLastError());
+		LOG_ERROR(logger, "Could not set port timeouts, error " << GetLastError());
 		return false;
     }
 
@@ -167,7 +166,7 @@ void SensorProviderZynqModule::SendData(uint8_t* data, size_t size) {
 
 	ssize_t written = write(mComFileDescriptor, data, size);
 	if (written <= 0) {
-		LOG4CXX_ERROR(logger, "Error writing to serial port");
+		LOG_ERROR(logger, "Error writing to serial port");
 	}
 #else
 	if (INVALID_HANDLE_VALUE == mComFileDescriptor) {
@@ -176,12 +175,12 @@ void SensorProviderZynqModule::SendData(uint8_t* data, size_t size) {
 
 	DWORD written = 0;
 	if (!WriteFile(mComFileDescriptor, data, size, &written, NULL)) {
-		LOG4CXX_ERROR(logger, "Error writing to serial port, errorcode " << GetLastError());
+		LOG_ERROR(logger, "Error writing to serial port, errorcode " << GetLastError());
 		return;
 	}
 
 	if (written != size) {
-		LOG4CXX_ERROR(logger, "Could not write all data to port");
+		LOG_ERROR(logger, "Could not write all data to port");
 	}
 #endif
 }
@@ -255,7 +254,7 @@ const char* SensorProviderZynqModule::getSensorsDescription(void) {
 		char* start = strstr((char*)mReceiveBuffer, "d\r\n");
 		if (start == NULL) {
 			start = (char*)mReceiveBuffer;
-			LOG4CXX_WARN(logger, "Could not find expected echo");
+			LOG_WARN(logger, "Could not find expected echo");
 		} else {
 			start += 3; // Skip echo
 		}
@@ -264,7 +263,7 @@ const char* SensorProviderZynqModule::getSensorsDescription(void) {
 		if( (ptr = strchr(start, '\r')) != NULL) {
 		    *ptr = '\0';
 		} else {
-			LOG4CXX_WARN(logger, "Could not find terminator");
+			LOG_WARN(logger, "Could not find terminator");
 		}
 		return start;
 	}
@@ -306,7 +305,7 @@ const char* SensorProviderZynqModule::getSensorsData(void) {
 		char* start = strstr((char*)mReceiveBuffer, "m\r\n");
 		if (start == NULL) {
 			start = (char*)mReceiveBuffer;
-			LOG4CXX_WARN(logger, "Could not find expected echo");
+			LOG_WARN(logger, "Could not find expected echo");
 		} else {
 			start += 3; // Skip echo
 		}
@@ -315,7 +314,7 @@ const char* SensorProviderZynqModule::getSensorsData(void) {
 		if( (ptr = strchr(start, '\r')) != NULL) {
 		    *ptr = '\0';
 		} else {
-			LOG4CXX_WARN(logger, "Could not find terminator");
+			LOG_WARN(logger, "Could not find terminator");
 		}
 		return start;
 	}

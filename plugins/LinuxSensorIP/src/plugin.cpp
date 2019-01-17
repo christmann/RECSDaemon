@@ -25,7 +25,7 @@
 #include <cstddef>
 #include "LinuxSensorIP.h"
 
-#include <log4cxx/logger.h>
+#include <logger.h>
 
 #ifdef WIN32
 #define PLUGIN_API __declspec(dllexport)
@@ -51,7 +51,7 @@ extern "C" PLUGIN_API PF_ExitFunc PF_initPlugin(const PF_PlatformServices * para
 	if (res < 0) {
 		return NULL;
 	}
-	LinuxSensorIP::logger = (log4cxx::Logger*)params->invokeService((const uint8_t *)"getLogger", (void*)"LinuxSensorIP");
+	LinuxSensorIP::logger = *((LoggerPtr*)params->invokeService((const uint8_t *)"getLogger", (void*)"LinuxSensorIP"));
 
 	return ExitFunc;
 }

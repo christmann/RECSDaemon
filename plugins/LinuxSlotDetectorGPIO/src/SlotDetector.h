@@ -28,7 +28,7 @@
 #include <object_model.h>
 #include <IConfig.h>
 #include <string>
-#include <log4cxx/logger.h>
+#include <logger.h>
 
 struct PF_ObjectParams;
 
@@ -43,7 +43,7 @@ public:
 	// ISlotDetector methods
 	virtual int8_t getSlot(void);
 
-	static log4cxx::LoggerPtr logger;
+	static LoggerPtr logger;
 	static IConfig* config;
 
 private:

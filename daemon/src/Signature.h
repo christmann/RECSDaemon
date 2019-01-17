@@ -29,7 +29,7 @@
 #include <stdint.h>
 #include <string>
 #include <list>
-#include <log4cxx/logger.h>
+#include <logger.h>
 
 #ifndef WIN32
 #include <openssl/evp.h>
@@ -55,7 +55,7 @@ private:
 	HCRYPTKEY mPublicKey;
 #endif
 
-	static log4cxx::LoggerPtr logger;
+	static LoggerPtr logger;
 	static uint8_t publicKeyData[];
 };
 

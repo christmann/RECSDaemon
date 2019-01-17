@@ -10,7 +10,7 @@
 #else
 #include <io.h>
 #endif
-#include <log4cxx/logger.h>
+#include <logger.h>
 
 //----------------------------------------------------------------------
 
@@ -72,7 +72,7 @@ namespace Directory
     std::string path_;
     DIR * handle_;
 
-    static log4cxx::LoggerPtr logger;
+    static LoggerPtr logger;
   };
 }
 

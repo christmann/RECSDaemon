@@ -27,7 +27,7 @@
 
 #include <stdint.h>
 #include <string>
-#include <log4cxx/logger.h>
+#include <logger.h>
 
 #ifdef WIN32
   #include <winsock2.h>
@@ -79,7 +79,7 @@ private:
   struct sockaddr_in mDestination;
 
   static uint32_t mInstanceCounter;
-  static log4cxx::LoggerPtr logger;
+  static LoggerPtr logger;
 };
 
 #endif /*NETWORK_H_*/

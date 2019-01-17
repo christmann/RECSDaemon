@@ -28,7 +28,7 @@
 
 #include <string>
 #include <list>
-#include <log4cxx/logger.h>
+#include <logger.h>
 #include "Daemon.h"
 #include "SensorSet.h"
 #include "../include/daemon_msgs.h"
@@ -78,7 +78,7 @@ private:
 	NodeType mNodeType;
 	uint16_t mMonitoringDataOffset;
 
-	static log4cxx::LoggerPtr logger;
+	static LoggerPtr logger;
 };
 
 #endif /* NODE_H_ */

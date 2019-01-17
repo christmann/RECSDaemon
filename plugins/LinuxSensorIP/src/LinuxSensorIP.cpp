@@ -34,7 +34,6 @@
 #include "daemon_msgs.h"
 
 using namespace std;
-using namespace log4cxx;
 
 LoggerPtr LinuxSensorIP::logger;
 
@@ -114,6 +113,6 @@ ISensorUnit LinuxSensorIP::getUnit(void) {
 	return UNIT_DIMENSIONLESS;
 }
 
-log4cxx::LoggerPtr LinuxSensorIP::getLogger(void) {
+LoggerPtr LinuxSensorIP::getLogger(void) {
 	return logger;
 }

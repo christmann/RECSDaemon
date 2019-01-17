@@ -51,7 +51,6 @@
 #define STATUS_ADDRESS_NAK   2
 
 using namespace std;
-using namespace log4cxx;
 
 LoggerPtr Communicator::logger;
 
@@ -78,11 +77,11 @@ bool Communicator::initInterface() {
 	for (struct usb_bus* bus = usb_get_busses(); bus; bus = bus->next) {
 		for (struct usb_device* dev = bus->devices; dev; dev = dev->next) {
 			if ((dev->descriptor.idVendor == I2C_TINY_USB_VID) && (dev->descriptor.idProduct == I2C_TINY_USB_PID)) {
-				LOG4CXX_INFO(logger, "Found i2c_tiny_usb device on bus " << bus->dirname << " device " << dev->filename);
+				LOG_INFO(logger, "Found i2c_tiny_usb device on bus " << bus->dirname << " device " << dev->filename);
 
 				// open device
 				if (!(mHandle = usb_open(dev))) {
-					LOG4CXX_ERROR(logger, "Cannot open the device: " << usb_strerror());
+					LOG_ERROR(logger, "Cannot open the device: " << usb_strerror());
 				}
 
 				break;
@@ -91,7 +90,7 @@ bool Communicator::initInterface() {
 	}
 
 	if (!mHandle) {
-		LOG4CXX_ERROR(logger, "Could not find i2c_tiny_usb device");
+		LOG_ERROR(logger, "Could not find i2c_tiny_usb device");
 		return false;
 	}
 	return true;
@@ -133,13 +132,13 @@ ssize_t Communicator::readData(size_t offset, void* buf, size_t count) {
 	temp[0] = (offset >> 8) & 0xff;
 	temp[1] = offset & 0xff;
 	if (usb_control_msg(mHandle, USB_CTRL_OUT, CMD_I2C_IO + CMD_I2C_BEGIN + CMD_I2C_END, 0, mI2CAddress, &temp[0], 2, 1000) < 1) {
-		LOG4CXX_ERROR(logger, "USB error: " << usb_strerror());
+		LOG_ERROR(logger, "USB error: " << usb_strerror());
 		return -2;
 	}
 
 	// Read data
 	if (usb_control_msg(mHandle, USB_CTRL_IN, CMD_I2C_IO + CMD_I2C_BEGIN + CMD_I2C_END, I2C_M_RD, mI2CAddress, (char*) buf, count, 1000) < 1) {
-		LOG4CXX_ERROR(logger, "USB error: " << usb_strerror())
+		LOG_ERROR(logger, "USB error: " << usb_strerror())
 		return -2;
 	}
 
@@ -159,14 +158,14 @@ ssize_t Communicator::writeData(size_t offset, const void* buf, size_t count) {
 	// Prepend offset to data, then write
 	char* temp = (char*)malloc(count + 2);
 	if (temp == NULL) {
-		LOG4CXX_ERROR(logger, "Could not allocate " << (count + 2) << " bytes of memory");
+		LOG_ERROR(logger, "Could not allocate " << (count + 2) << " bytes of memory");
 		return -4;
 	}
 	temp[0] = (offset >> 8) & 0xff;
 	temp[1] = offset & 0xff;
 	memcpy(&temp[2], buf, count);
 	if (usb_control_msg(mHandle, USB_CTRL_OUT, CMD_I2C_IO + CMD_I2C_BEGIN + CMD_I2C_END, 0, mI2CAddress, &temp[0], count + 2, 1000) < 1) {
-		LOG4CXX_ERROR(logger, "USB error: " << usb_strerror());
+		LOG_ERROR(logger, "USB error: " << usb_strerror());
 		free(temp);
 		return -2;
 	}
@@ -192,7 +191,7 @@ int Communicator::i2c_tiny_usb_read(unsigned char cmd, void *data, int len) {
 	nBytes = usb_control_msg(mHandle, USB_CTRL_IN, cmd, 0, 0, (char*)data, len, 1000);
 
 	if (nBytes < 0) {
-		LOG4CXX_ERROR(logger, "USB error: " << usb_strerror());
+		LOG_ERROR(logger, "USB error: " << usb_strerror());
 		return nBytes;
 	}
 
@@ -208,7 +207,7 @@ int Communicator::i2c_tiny_usb_get_status(void) {
 		return -1;
 
 	if ((i = i2c_tiny_usb_read(CMD_GET_STATUS, &status, sizeof(status))) < 0) {
-		LOG4CXX_ERROR(logger, "Error reading status");
+		LOG_ERROR(logger, "Error reading status");
 		return i;
 	}
 

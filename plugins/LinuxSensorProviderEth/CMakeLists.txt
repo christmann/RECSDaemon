@@ -13,12 +13,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/plugins)
 include_directories("${PROJECT_BINARY_DIR}")
 include_directories("${PROJECT_INCLUDE_DIR}")
 
-find_package(Log4cxx REQUIRED)
-include_directories(${LOG4CXX_INCLUDE_DIRS})
-
 file(GLOB SOURCES src/*.cpp)
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
-target_link_libraries (${PROJECT_NAME} ${LOG4CXX_LIBRARIES})
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows" )
 	target_link_libraries(${PROJECT_NAME} wsock32) # For htonl;
 endif ()

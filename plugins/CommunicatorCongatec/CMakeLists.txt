@@ -13,8 +13,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/plugins)
 include_directories("${PROJECT_BINARY_DIR}")
 include_directories("${PROJECT_INCLUDE_DIR}")
 
-find_package(Log4cxx REQUIRED)
-include_directories(${LOG4CXX_INCLUDE_DIRS})
 
 find_package(CGOS REQUIRED)
 include_directories(${CGOS_INCLUDE_DIRS})
@@ -22,6 +20,5 @@ include_directories(${CGOS_INCLUDE_DIRS})
 file(GLOB SOURCES src/*.cpp)
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 target_link_libraries (${PROJECT_NAME} ${CGOS_LIBRARIES})
-target_link_libraries (${PROJECT_NAME} ${LOG4CXX_LIBRARIES})
 
 INSTALL(PROGRAMS ${CMAKE_BINARY_DIR}/plugins/${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME}${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION plugins)

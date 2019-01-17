@@ -43,7 +43,6 @@
 #define I2C_PATH		"/dev/i2c-%d"
 
 using namespace std;
-using namespace log4cxx;
 
 LoggerPtr Communicator::logger;
 IConfig* Communicator::config;
@@ -71,13 +70,13 @@ bool Communicator::initInterface() {
 
 	mHandle = open(filename, O_RDWR);
 	if (mHandle < 0) {
-		LOG4CXX_ERROR(logger, "Failed to open I2C device " << filename << ". Code " << errno);
+		LOG_ERROR(logger, "Failed to open I2C device " << filename << ". Code " << errno);
 		return false;
 	}
 
 	int addressed = ioctl(mHandle, I2C_SLAVE, mI2CAddress);
 	if (addressed < 0) {
-		LOG4CXX_ERROR(logger, "Failed to set slave address 0x" << hex << mI2CAddress << ", error " << errno << " (" << strerror(errno) << ")");
+		LOG_ERROR(logger, "Failed to set slave address 0x" << hex << mI2CAddress << ", error " << errno << " (" << strerror(errno) << ")");
 		return false;
 	}
 	return true;
@@ -99,7 +98,7 @@ size_t Communicator::getMaxDataSize(void) {
 		mI2CAddress = I2C_ADDRESS_OLD1;
 		int addressed = ioctl(mHandle, I2C_SLAVE, mI2CAddress);
 		if (addressed < 0) {
-			LOG4CXX_ERROR(logger, "Failed to set slave address 0x" << hex << mI2CAddress << ", error " << errno << " (" << strerror(errno) << ")");
+			LOG_ERROR(logger, "Failed to set slave address 0x" << hex << mI2CAddress << ", error " << errno << " (" << strerror(errno) << ")");
 		}
 
 		readData(0, &hdr, sizeof(Daemon_Header));
@@ -107,14 +106,14 @@ size_t Communicator::getMaxDataSize(void) {
 			mI2CAddress = I2C_ADDRESS_OLD2;
 			int addressed = ioctl(mHandle, I2C_SLAVE, mI2CAddress);
 			if (addressed < 0) {
-				LOG4CXX_ERROR(logger, "Failed to set slave address 0x" << hex << mI2CAddress << ", error " << errno << " (" << strerror(errno) << ")");
+				LOG_ERROR(logger, "Failed to set slave address 0x" << hex << mI2CAddress << ", error " << errno << " (" << strerror(errno) << ")");
 			}
 			readData(0, &hdr, sizeof(Daemon_Header));
 			if (hdr.size == 0) { // Still not found, change back address
 				mI2CAddress = I2C_ADDRESS;
 				int addressed = ioctl(mHandle, I2C_SLAVE, mI2CAddress);
 				if (addressed < 0) {
-					LOG4CXX_ERROR(logger, "Failed to set slave address 0x" << hex << mI2CAddress << ", error " << errno << " (" << strerror(errno) << ")");
+					LOG_ERROR(logger, "Failed to set slave address 0x" << hex << mI2CAddress << ", error " << errno << " (" << strerror(errno) << ")");
 				}
 			}
 		}
@@ -133,7 +132,7 @@ ssize_t Communicator::readData(size_t offset, void* buf, size_t count) {
 	temp[1] = offset & 0xff;
 	int bytesWritten = write(mHandle, &temp[0], 2);
 	if (bytesWritten < 0) {
-		LOG4CXX_ERROR(logger, "Failed to write offset: Error " << errno << " (" << strerror(errno) << ")");
+		LOG_ERROR(logger, "Failed to write offset: Error " << errno << " (" << strerror(errno) << ")");
 	}
 
 	if (bytesWritten < 2) {
@@ -143,9 +142,9 @@ ssize_t Communicator::readData(size_t offset, void* buf, size_t count) {
 	// Read data
 	int bytesRead = read(mHandle, buf, count);
 	if (bytesRead < 0) {
-		LOG4CXX_ERROR(logger, "Failed to read " << count << " bytes: error " << errno << " (" << strerror(errno) << ")");
+		LOG_ERROR(logger, "Failed to read " << count << " bytes: error " << errno << " (" << strerror(errno) << ")");
 	//} else {
-	//	LOG4CXX_DEBUG(logger, "Read " << bytesRead << " of " << count << " bytes at 0x" << hex << offset);
+	//	LOG_DEBUG(logger, "Read " << bytesRead << " of " << count << " bytes at 0x" << hex << offset);
 	}
 
 	return bytesRead;
@@ -158,7 +157,7 @@ ssize_t Communicator::writeData(size_t offset, const void* buf, size_t count) {
 	// Prepend offset to data, then write
 	char* temp = (char*)malloc(count + 2);
 	if (temp == NULL) {
-		LOG4CXX_ERROR(logger, "Could not allocate " << (count + 2) << " bytes of memory");
+		LOG_ERROR(logger, "Could not allocate " << (count + 2) << " bytes of memory");
 		return -4;
 	}
 	temp[0] = (offset >> 8) & 0xff;
@@ -167,9 +166,9 @@ ssize_t Communicator::writeData(size_t offset, const void* buf, size_t count) {
 
 	int bytesWritten = write(mHandle, &temp[0], count + 2);
 	if (bytesWritten < 0) {
-		LOG4CXX_ERROR(logger, "Failed to write " << count + 2 << " bytes: error " << errno << " (" << strerror(errno) << ")");
+		LOG_ERROR(logger, "Failed to write " << count + 2 << " bytes: error " << errno << " (" << strerror(errno) << ")");
 	//} else {
-	//	LOG4CXX_DEBUG(logger, "Wrote " << bytesWritten << " of " << count + 2 << " bytes at 0x" << hex << offset);
+	//	LOG_DEBUG(logger, "Wrote " << bytesWritten << " of " << count + 2 << " bytes at 0x" << hex << offset);
 	}
 	free(temp);
 	return bytesWritten;

@@ -28,7 +28,7 @@
 #include <object_model.h>
 #include <string>
 #include <map>
-#include <log4cxx/logger.h>
+#include <logger.h>
 #include <c_object_model.h>
 #include <SensorBean.h>
 
@@ -53,7 +53,7 @@ public:
 	// ISensorProvider methods
 	virtual std::map<std::string, ISensor*> getSensors(void);
 
-	static log4cxx::LoggerPtr logger;
+	static LoggerPtr logger;
 private:
 	LinuxSensorProviderEth();
 	static void updateLinkStatus(SensorBean* sensor);

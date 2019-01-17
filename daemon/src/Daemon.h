@@ -27,7 +27,7 @@
 #define DAEMON_H_
 
 #include <list>
-#include <log4cxx/logger.h>
+#include <logger.h>
 #include <stdint.h>
 #include <pthread.h>
 #include "object_model.h"
@@ -40,7 +40,7 @@ public:
 	int run(int exitAfter);
 	void resetStatemachine(void);
 	ssize_t doRead(size_t offset, void* buf, size_t count);
-	log4cxx::LoggerPtr addPluginLogger(std::string name);
+	LoggerPtr* addPluginLogger(std::string name);
 	int8_t getSlot();
 	void shutdown(void);
 
@@ -54,7 +54,7 @@ private:
 	static void* InvokeService(const uint8_t * serviceName, void * serviceParams);
 	static void signal_handler(int sig);
 
-	std::list<log4cxx::LoggerPtr>* mPluginLoggers;
+	std::list<LoggerPtr>* mPluginLoggers;
 	bool mShutdown;
 	bool mFirstWriteDone;
 	State mState;
@@ -63,7 +63,7 @@ private:
 	pthread_mutex_t mCommMutex;
 	int8_t mSlot;
 
-	static log4cxx::LoggerPtr logger;
+	static LoggerPtr logger;
 	static Daemon* instance;
 };
 

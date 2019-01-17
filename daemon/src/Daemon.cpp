@@ -34,8 +34,6 @@
 #include <Windows.h>
 #endif
 
-#include <log4cxx/xml/domconfigurator.h>
-
 #include "plugin_framework/Directory.h"
 #include "plugin_framework/Path.h"
 #include "plugin_framework/PluginManager.h"
@@ -54,8 +52,6 @@
 #include "Daemon.h"
 
 using namespace std;
-using namespace log4cxx;
-using namespace log4cxx::xml;
 
 #define MAX_UPDATEINTERVAL	30000 // ms
 
@@ -95,7 +91,7 @@ void* Daemon::InvokeService(const uint8_t * serviceName, void * serviceParams) {
 	} else if (strcmp((char*)serviceName, "getConfig") == 0) {
 		return (void*)Config::GetInstance();
 	} else if (strcmp((char*)serviceName, "resetStatemachine") == 0) {
-		LOG4CXX_INFO(logger, "Resetting state machine");
+		LOG_INFO(logger, "Resetting state machine");
 		instance->resetStatemachine();
 	} else if (strcmp((char*)serviceName, "getSlot") == 0) {
 		if (serviceParams != NULL) {
@@ -109,33 +105,33 @@ void Daemon::signal_handler(int sig) {
 	switch (sig) {
 #ifndef WIN32
 		case SIGHUP:
-			LOG4CXX_INFO(logger, "HangUp signal catched");
+			LOG_INFO(logger, "HangUp signal catched");
 			break;
 #endif
 		case SIGINT:
 		case SIGTERM:
-			LOG4CXX_INFO(logger, "Terminate signal catched, shutting down...");
+			LOG_INFO(logger, "Terminate signal catched, shutting down...");
 			instance->shutdown();
 			break;
 	}
 }
 
 int Daemon::run(int exitAfter) {
-	LOG4CXX_INFO(logger, "Loading config file");
+	LOG_INFO(logger, "Loading config file");
 	Config::GetInstance();
 
 	// Initialization
 	PluginManager & pm = PluginManager::getInstance();
 	pm.getPlatformServices().invokeService = InvokeService;
-	LOG4CXX_INFO(logger, "Loading plugins...");
+	LOG_INFO(logger, "Loading plugins...");
 	if (pm.loadAll(Path::makeAbsolute(Directory::getCWD() + "/plugins"), InvokeService) < 0) {
-		LOG4CXX_ERROR(logger, "Could not open plugins directory!");
+		LOG_ERROR(logger, "Could not open plugins directory!");
 	}
-	LOG4CXX_INFO(logger, pm.getRegistrationMap().size() << " plugins loaded");
+	LOG_INFO(logger, pm.getRegistrationMap().size() << " plugins loaded");
 
 	string communicatorPluginName = Config::GetInstance()->GetString("Comm", "PluginName", "");
 	if (communicatorPluginName == "") {
-		LOG4CXX_ERROR(logger, "No communicator plugin selected. Please set entry PluginName in section Comm in " << CONFIG_FILE << "!");
+		LOG_ERROR(logger, "No communicator plugin selected. Please set entry PluginName in section Comm in " << CONFIG_FILE << "!");
 		pm.shutdown();
 
 		mPluginLoggers->clear();
@@ -146,11 +142,11 @@ int Daemon::run(int exitAfter) {
 		return -1;
 	}
 
-	LOG4CXX_DEBUG(logger, "Creating instance of plugin " << communicatorPluginName);
+	LOG_DEBUG(logger, "Creating instance of plugin " << communicatorPluginName);
 	mComm = CommunicatorFactory::createCommunicator(communicatorPluginName);
 
 	if (mComm == NULL) {
-		LOG4CXX_ERROR(logger, "Could not instantiate plugin " << communicatorPluginName << "!");
+		LOG_ERROR(logger, "Could not instantiate plugin " << communicatorPluginName << "!");
 		pm.shutdown();
 
 		mPluginLoggers->clear();
@@ -162,7 +158,7 @@ int Daemon::run(int exitAfter) {
 	}
 
 	if (!mComm->initInterface()) {
-		LOG4CXX_ERROR(logger, "Could not initialize communicator interface!");
+		LOG_ERROR(logger, "Could not initialize communicator interface!");
 
 		delete mComm;
 		pm.shutdown();
@@ -176,20 +172,20 @@ int Daemon::run(int exitAfter) {
 	}
 
 	ssize_t size = mComm->getMaxDataSize();
-	LOG4CXX_INFO(logger, "Maximum data size is " << size << " bytes");
+	LOG_INFO(logger, "Maximum data size is " << size << " bytes");
 
 	Daemon_Header hdr;
 	if (mComm->readData(0, &hdr, sizeof(Daemon_Header))) {
 		if (hdr.magic[0] == 'R' && hdr.magic[1] == 'E' && hdr.magic[2] == 'C' && hdr.magic[3] == 'S') {
 			if (hdr.baseboardID & 0x80) {
-				LOG4CXX_INFO(logger, "Running on baseboard with I2C address 0x" << hex << (hdr.baseboardID & 0x7f));
+				LOG_INFO(logger, "Running on baseboard with I2C address 0x" << hex << (hdr.baseboardID & 0x7f));
 			} else {
-				LOG4CXX_INFO(logger, "Running on baseboard with ID " << (int)hdr.baseboardID);
+				LOG_INFO(logger, "Running on baseboard with ID " << (int)hdr.baseboardID);
 			}
 			if (hdr.maxSlots > 0) {
-				LOG4CXX_INFO(logger, "Number of slots on baseboard: " << (int)hdr.maxSlots);
+				LOG_INFO(logger, "Number of slots on baseboard: " << (int)hdr.maxSlots);
 			} else {
-				LOG4CXX_ERROR(logger, "Number of slots (0) invalid, try updating firmware");
+				LOG_ERROR(logger, "Number of slots (0) invalid, try updating firmware");
 				delete mComm;
 				pm.shutdown();
 
@@ -201,7 +197,7 @@ int Daemon::run(int exitAfter) {
 				return -1;
 			}
 		} else {
-			LOG4CXX_ERROR(logger, "No valid header signature found");
+			LOG_ERROR(logger, "No valid header signature found");
 			delete mComm;
 			pm.shutdown();
 
@@ -213,7 +209,7 @@ int Daemon::run(int exitAfter) {
 			return -1;
 		}
 	} else {
-		LOG4CXX_ERROR(logger, "Could not read memory header");
+		LOG_ERROR(logger, "Could not read memory header");
 		delete mComm;
 		pm.shutdown();
 
@@ -228,11 +224,11 @@ int Daemon::run(int exitAfter) {
 	mSlot = Config::GetInstance()->GetInt("Slot", "defaultSlot", 0);
 	string slotDetectorPluginName = Config::GetInstance()->GetString("Slot", "slotPluginName", "");
 	if (slotDetectorPluginName != "") {
-		LOG4CXX_DEBUG(logger, "Creating instance of plugin " << slotDetectorPluginName);
+		LOG_DEBUG(logger, "Creating instance of plugin " << slotDetectorPluginName);
 		ISlotDetector * slotDetector = SlotDetectorFactory::createSlotDetector(slotDetectorPluginName);
 
 		if (slotDetector == NULL) {
-			LOG4CXX_ERROR(logger, "Could not instantiate plugin " << slotDetectorPluginName << "!");
+			LOG_ERROR(logger, "Could not instantiate plugin " << slotDetectorPluginName << "!");
 			delete mComm;
 			pm.shutdown();
 
@@ -246,7 +242,7 @@ int Daemon::run(int exitAfter) {
 
 		mSlot = slotDetector->getSlot();
 		if (mSlot < 0) {
-			LOG4CXX_ERROR(logger, "Could not determine module slot!");
+			LOG_ERROR(logger, "Could not determine module slot!");
 
 			delete slotDetector;
 			delete mComm;
@@ -261,9 +257,9 @@ int Daemon::run(int exitAfter) {
 		}
 		delete slotDetector;
 
-		LOG4CXX_INFO(logger, "Detected module slot " << (int)mSlot);
+		LOG_INFO(logger, "Detected module slot " << (int)mSlot);
 	} else {
-		LOG4CXX_INFO(logger, "No SlotDetector plugin selected (entry slotPluginName in section Slot), assuming slot " << (int)mSlot);
+		LOG_INFO(logger, "No SlotDetector plugin selected (entry slotPluginName in section Slot), assuming slot " << (int)mSlot);
 	}
 
 	uint8_t baseboardID = 0;
@@ -276,9 +272,9 @@ int Daemon::run(int exitAfter) {
 			nodeIDStream << "-" << (mSlot + 1);
 		}
 		nodeID = nodeIDStream.str();
-		LOG4CXX_INFO(logger, "ID of this node is " << nodeID);
+		LOG_INFO(logger, "ID of this node is " << nodeID);
 	} else {
-		LOG4CXX_INFO(logger, "Could not determine node ID, baseboard ID not set");
+		LOG_INFO(logger, "Could not determine node ID, baseboard ID not set");
 	}
 
 	size_t messageOffset = hdr.dynamicAreaOffset;
@@ -292,10 +288,10 @@ int Daemon::run(int exitAfter) {
 		messageMaxSize /= hdr.maxSlots;
 		messageOffset += (mSlot * messageMaxSize);
 	}
-	LOG4CXX_INFO(logger, "Reserved memory for messages at 0x" << hex << messageOffset << ", " << dec << messageMaxSize << " bytes");
+	LOG_INFO(logger, "Reserved memory for messages at 0x" << hex << messageOffset << ", " << dec << messageMaxSize << " bytes");
 
 	if (messageMaxSize < sizeof(Message_Header)) {
-		LOG4CXX_ERROR(logger, "Maximum memory size too small for header");
+		LOG_ERROR(logger, "Maximum memory size too small for header");
 
 		delete mComm;
 		pm.shutdown();
@@ -308,15 +304,15 @@ int Daemon::run(int exitAfter) {
 		return -1;
 	}
 
-	LOG4CXX_INFO(logger, "Initializing sensors...");
+	LOG_INFO(logger, "Initializing sensors...");
 	Node::NodeType type = hdr.maxSlots == 4 ? Node::NODE_APALIS : Node::NODE_CXP;
 	Node* node = new Node(nodeID, baseboardID, mSlot, type);
 
 	size_t sensorSize = node->getSensors()->getSize();
 	if (sensorSize <= messageMaxSize) {
-		LOG4CXX_INFO(logger, "Sensor message will use " << sensorSize << " of " << messageMaxSize << " bytes available");
+		LOG_INFO(logger, "Sensor message will use " << sensorSize << " of " << messageMaxSize << " bytes available");
 	} else {
-		LOG4CXX_ERROR(logger, "Sensor message size of " << sensorSize << " bytes too big for allocated memory!");
+		LOG_ERROR(logger, "Sensor message size of " << sensorSize << " bytes too big for allocated memory!");
 
 		delete node;
 		delete mComm;
@@ -330,13 +326,13 @@ int Daemon::run(int exitAfter) {
 		return -1;
 	}
 
-	LOG4CXX_INFO(logger, "Starting server...");
+	LOG_INFO(logger, "Starting server...");
 	CommandLineServer* server = new CommandLineServer(node, this);
 
-	LOG4CXX_INFO(logger, "Initializing crypto...");
+	LOG_INFO(logger, "Initializing crypto...");
 	Signature* signature = new Signature();
 
-	LOG4CXX_INFO(logger, "READY.");
+	LOG_INFO(logger, "READY.");
 
 #ifndef WIN32
 	signal(SIGCHLD, SIG_IGN); // ignore child
@@ -351,7 +347,7 @@ int Daemon::run(int exitAfter) {
 	resetStatemachine();
 	int updateInterval = Config::GetInstance()->GetInt("Update", "updateInterval", 1000);
 	if (updateInterval > MAX_UPDATEINTERVAL) {
-		LOG4CXX_WARN(logger, "Update interval too large, maximum interval is " << MAX_UPDATEINTERVAL << " ms");
+		LOG_WARN(logger, "Update interval too large, maximum interval is " << MAX_UPDATEINTERVAL << " ms");
 		updateInterval = MAX_UPDATEINTERVAL;
 	}
 	timeval lastLoopTime;
@@ -365,7 +361,7 @@ int Daemon::run(int exitAfter) {
 		if (read) {
 			enum Message_Type type = static_cast<Message_Type>(msg.type);
 			uint16_t msgSize = ntohs(msg.size);
-			//LOG4CXX_DEBUG(logger, "Current message size=" << msg.size << " bytes, type=" << type);
+			//LOG_DEBUG(logger, "Current message size=" << msg.size << " bytes, type=" << type);
 			if (msgSize <= messageMaxSize) {
 				if (type == Command) {
 					// Handle command
@@ -384,7 +380,7 @@ int Daemon::run(int exitAfter) {
 								memcpy(&cmdSignature[0], header->signature, SIGNATURE_LENGTH);
 								memset(header->signature, 0, SIGNATURE_LENGTH);
 								if (signature->checkSignature(data, msgSize, &cmdSignature[0], sizeof(cmdSignature))) {
-									LOG4CXX_DEBUG(logger, "Signature successfully verified");
+									LOG_DEBUG(logger, "Signature successfully verified");
 									//TODO: Optionally check timestamp +- given time frame
 									size_t commandLen = min((size_t)COMMAND_MAX_LENGTH, strlen((char *)header->command));
 									size_t parametersLen = min((size_t)ntohs(header->parametersLength), min((size_t)msgSize, messageMaxSize));
@@ -392,10 +388,10 @@ int Daemon::run(int exitAfter) {
 									string parameters((char*)(data + sizeof(Command_Header)), parametersLen);
 									node->executeCommand(command, parameters);
 								} else {
-									LOG4CXX_ERROR(logger, "Signature verification failed");
+									LOG_ERROR(logger, "Signature verification failed");
 								}
 							} else {
-								LOG4CXX_ERROR(logger, "Received command was for slot " << header->slot << " on baseboard " << header->baseboard << ", ignoring!");
+								LOG_ERROR(logger, "Received command was for slot " << header->slot << " on baseboard " << header->baseboard << ", ignoring!");
 							}
 
 							// Clear command message
@@ -404,26 +400,26 @@ int Daemon::run(int exitAfter) {
 							mComm->writeData(messageOffset, &type, 1);
 							pthread_mutex_unlock(&mCommMutex);
 						} else {
-							LOG4CXX_ERROR(logger, "Could not read rest of command message");
+							LOG_ERROR(logger, "Could not read rest of command message");
 						}
 					} else {
-						LOG4CXX_ERROR(logger, "Could not allocate memory for rest of command message");
+						LOG_ERROR(logger, "Could not allocate memory for rest of command message");
 					}
 				} else if ((type == Monitoring_Description || type == Basic_Information || type == Command_Result) && mFirstWriteDone) {
-					LOG4CXX_DEBUG(logger, "Waiting for management to pick up message...");
+					LOG_DEBUG(logger, "Waiting for management to pick up message...");
 					// Reply not yet read by management, keep data
 				} else {
 					if (mState == State_BasicInformation) {
 						uint8_t* desc = (uint8_t*)malloc(messageMaxSize);
 						size_t size = node->getBasicInformationBlock(desc, messageMaxSize);
-						LOG4CXX_DEBUG(logger, "Writing basic information block (" << size << " bytes)");
+						LOG_DEBUG(logger, "Writing basic information block (" << size << " bytes)");
 						pthread_mutex_lock(&mCommMutex);
 						mComm->writeData(messageOffset, desc, size);
 						pthread_mutex_unlock(&mCommMutex);
 						free(desc);
 						mState = State_MonitoringDescription;
 					} else if (mState == State_MonitoringData) {
-						//LOG4CXX_DEBUG(logger, "Writing sensor data (" << sensorSize << " bytes)");
+						//LOG_DEBUG(logger, "Writing sensor data (" << sensorSize << " bytes)");
 						pthread_mutex_lock(&mCommMutex);
 						mComm->writeData(messageOffset, node->getSensors()->getMessage(), sensorSize);
 						pthread_mutex_unlock(&mCommMutex);
@@ -431,7 +427,7 @@ int Daemon::run(int exitAfter) {
 						uint8_t* desc = (uint8_t*)malloc(messageMaxSize);
 						uint8_t maxPages = 0;
 						size_t size = node->getSensors()->getDescriptionPage(desc, messageMaxSize, mCurrentPage, &maxPages);
-						LOG4CXX_DEBUG(logger, "Writing description page " << (int)mCurrentPage << " of " << (int)maxPages << " (" << size << " bytes)");
+						LOG_DEBUG(logger, "Writing description page " << (int)mCurrentPage << " of " << (int)maxPages << " (" << size << " bytes)");
 						pthread_mutex_lock(&mCommMutex);
 						mComm->writeData(messageOffset, desc, size);
 						pthread_mutex_unlock(&mCommMutex);
@@ -446,10 +442,10 @@ int Daemon::run(int exitAfter) {
 					mFirstWriteDone = true;
 				}
 			} else {
-				LOG4CXX_ERROR(logger, "Given message size (" << msgSize << ") too large");
+				LOG_ERROR(logger, "Given message size (" << msgSize << ") too large");
 			}
 		} else {
-			LOG4CXX_WARN(logger, "Could not read message header");
+			LOG_WARN(logger, "Could not read message header");
 		}
 
 		// Wait for next update
@@ -481,7 +477,7 @@ int Daemon::run(int exitAfter) {
 		}
 	}
 
-	LOG4CXX_INFO(logger, "RECS daemon quitting, writing empty sensor description page");
+	LOG_INFO(logger, "RECS daemon quitting, writing empty sensor description page");
 	node->getSensors()->clear();
 	uint8_t* desc = (uint8_t*)malloc(messageMaxSize);
 	uint8_t maxPages = 0;
@@ -491,7 +487,7 @@ int Daemon::run(int exitAfter) {
 	pthread_mutex_unlock(&mCommMutex);
 	free(desc);
 
-	LOG4CXX_INFO(logger, "Shutting down services");
+	LOG_INFO(logger, "Shutting down services");
 	delete signature;
 	delete server;
 	delete node;
@@ -506,10 +502,10 @@ int Daemon::run(int exitAfter) {
 	return 0;
 }
 
-LoggerPtr Daemon::addPluginLogger(string name) {
+LoggerPtr* Daemon::addPluginLogger(string name) {
 	LoggerPtr log = Logger::getLogger(name);
 	mPluginLoggers->push_back(log);
-	return log;
+	return &(mPluginLoggers->back());
 }
 
 ssize_t Daemon::doRead(size_t offset, void* buf, size_t count) {

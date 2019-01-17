@@ -36,7 +36,6 @@
 #define SLOTS			4
 
 using namespace std;
-using namespace log4cxx;
 
 LoggerPtr CommunicatorDummy::logger;
 
@@ -57,7 +56,7 @@ CommunicatorDummy::CommunicatorDummy() : mData(NULL) {
 bool CommunicatorDummy::initInterface() {
 	mData = (uint8_t*)malloc(MEMORY_SIZE);
 	if (mData == NULL) {
-		LOG4CXX_ERROR(logger, "Failed to allocate " << MEMORY_SIZE << " bytes");
+		LOG_ERROR(logger, "Failed to allocate " << MEMORY_SIZE << " bytes");
 		return false;
 	}
 	memset(mData, 0, MEMORY_SIZE);

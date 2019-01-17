@@ -11,8 +11,6 @@
 #include "DynamicLibrary.h"
 #include "ObjectAdapter.h"
 
-using namespace log4cxx;
-
 #ifdef WIN32
   static std::string dynamicLibraryExtension("dll");
 #else
@@ -61,7 +59,7 @@ int32_t PluginManager::registerObject(const uint8_t * objectType, const PF_Regis
     return -1;
   
   pm.exactMatchMap_[key] = *params;
-  LOG4CXX_DEBUG(logger, "Registered object '" << key << "'");
+  LOG_DEBUG(logger, "Registered object '" << key << "'");
   return 0; 
 }
 
@@ -189,20 +187,20 @@ int32_t PluginManager::loadByPath(const std::string & pluginPath)
     std::string errorString;
     DynamicLibrary * d = loadLibrary(std::string(path), errorString);
     if (!d) { // not a dynamic library?
-      LOG4CXX_ERROR(logger, "Could not load library " << std::string(path) << ": " << errorString);
+      LOG_ERROR(logger, "Could not load library " << std::string(path) << ": " << errorString);
       return -1;
     }
                     
     // Get the NTA_initPlugin() function
     PF_InitFunc initFunc = (PF_InitFunc)(d->getSymbol("PF_initPlugin"));
     if (!initFunc) { // dynamic library missing entry point?
-      LOG4CXX_ERROR(logger, "Could not find entry point PF_initPlugin in library " << std::string(path));
+      LOG_ERROR(logger, "Could not find entry point PF_initPlugin in library " << std::string(path));
       return -1;
     }
     
     int32_t res = initializePlugin(initFunc);
     if (res < 0) { // failed to initalize?
-      LOG4CXX_ERROR(logger, "Plugin " << std::string(path) << " failed to initialize");
+      LOG_ERROR(logger, "Plugin " << std::string(path) << " failed to initialize");
       return res;
     }
     
@@ -262,10 +260,10 @@ int32_t PluginManager::loadByPath(const std::string & pluginPath)
 
 void * PluginManager::createObject(const std::string & objectType, IObjectAdapter & adapter)
 {
-  //LOG4CXX_DEBUG(logger, "Creating object of type '" << objectType << "'...");
+  //LOG_DEBUG(logger, "Creating object of type '" << objectType << "'...");
   // "*" is not a valid object type
   if (objectType == std::string("*")) {
-	LOG4CXX_ERROR(logger, "Invalid object type '*'");
+	LOG_ERROR(logger, "Invalid object type '*'");
     return NULL;
   }
   
@@ -278,7 +276,7 @@ void * PluginManager::createObject(const std::string & objectType, IObjectAdapte
   if (exactMatchMap_.find(objectType) != exactMatchMap_.end())
   {        
     PF_RegisterParams & rp = exactMatchMap_[objectType];
-    //LOG4CXX_DEBUG(logger, "Found exact match, instantiating object...");
+    //LOG_DEBUG(logger, "Found exact match, instantiating object...");
     void * object = rp.createFunc(&np);
     if (object) // great, there is an exact match
     {
@@ -286,14 +284,14 @@ void * PluginManager::createObject(const std::string & objectType, IObjectAdapte
       if (rp.programmingLanguage == PF_ProgrammingLanguage_C)
         object = adapter.adapt(object, rp.destroyFunc);
         
-      //LOG4CXX_DEBUG(logger, "Object successfully instantiated");
+      //LOG_DEBUG(logger, "Object successfully instantiated");
       return object; 
     } else {
-      LOG4CXX_ERROR(logger, "Object creation via plugin failed");
+      LOG_ERROR(logger, "Object creation via plugin failed");
     }
   }
   
-  LOG4CXX_DEBUG(logger, "No exact match found, trying wildcard match...");
+  LOG_DEBUG(logger, "No exact match found, trying wildcard match...");
   // Try to find a wild card match
   for (size_t i = 0; i < wildCardVec_.size(); ++i)
   {
@@ -318,7 +316,7 @@ void * PluginManager::createObject(const std::string & objectType, IObjectAdapte
     }      
   }
 
-  LOG4CXX_ERROR(logger, "No plugin found providing object type " << objectType);
+  LOG_ERROR(logger, "No plugin found providing object type " << objectType);
   // Too bad no one can create this objectType
   return NULL;
 }

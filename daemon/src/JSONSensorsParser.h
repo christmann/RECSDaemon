@@ -26,7 +26,7 @@
 #ifndef JSONSENSORSPARSER_H_
 #define JSONSENSORSPARSER_H_
 
-#include <log4cxx/logger.h>
+#include <logger.h>
 #include "object_model.h"
 #include "json.h"
 #include "SensorSet.h"
@@ -50,7 +50,7 @@ private:
 	SensorsMap mSensors;
 	std::vector<SensorBean*> mSensorsOrdered;
 
-	static log4cxx::LoggerPtr logger;
+	static LoggerPtr logger;
 };
 
 #endif /* JSONSENSORSPARSER_H_ */

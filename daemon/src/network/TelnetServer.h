@@ -27,7 +27,7 @@
 #define TELNETSERVER_H_
 
 #include <iostream>
-#include <log4cxx/logger.h>
+#include <logger.h>
 #include "../Thread.h"
 #include "Network.h"
 #include "../Daemon.h"
@@ -39,7 +39,7 @@ public:
 	virtual ~CommandLineServer();
 
 protected:
-	static log4cxx::LoggerPtr logger;
+	static LoggerPtr logger;
 
 	Node* getNode();
 	Daemon* getDaemon();

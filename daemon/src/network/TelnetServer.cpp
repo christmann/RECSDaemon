@@ -34,14 +34,12 @@
 #define BUFFER_LENGTH		1024
 #define CONNECTION_TIME_OUT	10 // s
 
-using namespace log4cxx;
-
 LoggerPtr CommandLineServer::logger(Logger::getLogger("TelnetServer"));
 
 CommandLineServer::CommandLineServer(Node* node, Daemon* daemon)
 	: mNode(node), mDaemon(daemon) {
 	int port = Config::GetInstance()->GetInt("Telnet", "port", 2023);
-	LOG4CXX_DEBUG(logger, "Listening on port " << port);
+	LOG_DEBUG(logger, "Listening on port " << port);
 	mNetwork = new Network(port);
 	this->start(this);
 }
@@ -82,7 +80,7 @@ CommandLineServer::CommandLineServerClient::~CommandLineServerClient() {
 
 void CommandLineServer::CommandLineServerClient::execute(void* arg) {
 	UNUSED(arg);
-	LOG4CXX_DEBUG(CommandLineServer::logger, "Client handler started for client " << Network::printIP(mClient->getRemoteIP()) << ":" << mClient->getRemotePort());
+	LOG_DEBUG(CommandLineServer::logger, "Client handler started for client " << Network::printIP(mClient->getRemoteIP()) << ":" << mClient->getRemotePort());
 
 	char cmdBuffer[BUFFER_LENGTH] = { 0 };
 	while (true) {
@@ -91,7 +89,7 @@ void CommandLineServer::CommandLineServerClient::execute(void* arg) {
 		}
 		string cmd(cmdBuffer);
 		transform(cmd.begin(), cmd.end(), cmd.begin(), ::tolower);
-		//LOG4CXX_DEBUG(CommandLineServer::logger, "Received new command: '" << cmd << "'");
+		//LOG_DEBUG(CommandLineServer::logger, "Received new command: '" << cmd << "'");
 
 		if (cmd == "getnodeid") {
 			mClient->sendData(mServer->getNode()->getID());
@@ -140,7 +138,7 @@ void CommandLineServer::CommandLineServerClient::execute(void* arg) {
 		}
 
 	}
-	LOG4CXX_DEBUG(CommandLineServer::logger, "Client handler exited for client " << Network::printIP(mClient->getRemoteIP()) << ":" << mClient->getRemotePort());
+	LOG_DEBUG(CommandLineServer::logger, "Client handler exited for client " << Network::printIP(mClient->getRemoteIP()) << ":" << mClient->getRemotePort());
 	delete mClient;
 }
 
