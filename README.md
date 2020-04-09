@@ -6,6 +6,16 @@ The RECSDaemon is a small program that can be installed on compute modules in a 
 
 ## Building
 
+### Install necessary build libraries and build system
+
+On a Debian/Ubuntu based system, install the following libraries:
+
+```bash
+sudo apt-get install build-essential libssl-dev pkg-config cmake
+```
+
+### Compile
+
 RECSDaemon uses CMake as it's build system.
 
 To build:
