@@ -40,7 +40,7 @@ typedef string LoggerPtr;
 	    char       buf[10]; \
 	    tstruct = *localtime(&now); \
 	    strftime(buf, sizeof(buf), "%H:%M:%S ", &tstruct); \
-        stream << buf << level << " " << logger << " - " << message << endl << flush; }
+        stream << buf << level << " " << logger << " - " << dec << message << endl << flush; }
 
 #define LOG_ERROR(logger, message) LOG_WRITE(logger, message, "ERROR", cerr)
 #define LOG_WARN(logger, message)  LOG_WRITE(logger, message, "WARN ", cout)
