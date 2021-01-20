@@ -21,7 +21,7 @@ sudo apt-get install build-essential libssl-dev pkg-config cmake
 On a CentOS based system, install the following libraries:
 
 ```bash
-sudo yum install make cmake gcc g++ openssl-devel.x86_64 
+sudo yum install make cmake gcc g++ openssl-devel
 ```
 
 ### Compile
