@@ -54,7 +54,7 @@ int32_t Communicator::destroy(void * p) {
 	return 0;
 }
 
-Communicator::Communicator() : mHandle(0), mI2CAddress(I2C_ADDRESS), mMaxBlockLen(32) {
+Communicator::Communicator() : mHandle(0), mI2CAddress(I2C_ADDRESS), mMaxBlockLen(29) {
 }
 
 bool Communicator::initInterface() {
@@ -64,11 +64,13 @@ bool Communicator::initInterface() {
 		LOG_ERROR(logger, "Could not initialize SEMA library. Error " << ret);
 		return false;
 	}
-	ret = SemaEApiI2CGetBusCap(mHandle, EAPI_ID_I2C_EXTERNAL, &mMaxBlockLen);
+	// Returned block length seems to be too large. Returned 64, but only values up to 29 worked.
+	// Higher values seemed to be executed (no error returned), but did not show up on the bus
+	/*ret = SemaEApiI2CGetBusCap(mHandle, EAPI_ID_I2C_EXTERNAL, &mMaxBlockLen);
 	if (ret != EAPI_STATUS_SUCCESS) {
 		LOG_ERROR(logger, "Could not get I2C capabilities. Error " << ret);
 		return false;
-	}
+	}*/
 	LOG_DEBUG(logger, "Maximum block length: " << mMaxBlockLen);
 
 	return true;
@@ -110,11 +112,15 @@ ssize_t Communicator::readData(size_t offset, void* buf, size_t count) {
 	while (remaining > 0) {
 		uint32_t blockLen = min(remaining, mMaxBlockLen);
 
-		uint32_t enc_cmd = EAPI_I2C_ENC_EXT_CMD(offset + pos);
-		uint32_t ret = SemaEApiI2CReadTransfer(mHandle, EAPI_ID_I2C_EXTERNAL, mI2CAddress, enc_cmd, (char*)buf + pos, blockLen, blockLen);
+		// Write offset
+		char temp[2];
+		temp[0] = ((offset + pos) >> 8) & 0xff;
+		temp[1] = (offset + pos) & 0xff;
+
+		uint32_t ret = SemaEApiI2CWriteReadRaw(mHandle, EAPI_ID_I2C_EXTERNAL, mI2CAddress, temp, 2 + 1, (char*)buf + pos, blockLen, blockLen + 1);
 		if (ret != EAPI_STATUS_SUCCESS) {
 			LOG_WARN(logger, "I2C read failed, retrying (error 0x" << hex << ret << ")");
-			ret = SemaEApiI2CReadTransfer(mHandle, EAPI_ID_I2C_EXTERNAL, mI2CAddress, enc_cmd, (char*)buf + pos, blockLen, blockLen);
+			ret = SemaEApiI2CWriteReadRaw(mHandle, EAPI_ID_I2C_EXTERNAL, mI2CAddress, temp, 2 + 1, (char*)buf + pos, blockLen, blockLen + 1);
 			if (ret != EAPI_STATUS_SUCCESS) {
 				LOG_ERROR(logger, "I2C read failed (error 0x" << hex << ret << ")");
 				return -1;
@@ -130,23 +136,35 @@ ssize_t Communicator::writeData(size_t offset, const void* buf, size_t count) {
 	if (!mHandle)
 		return -3;
 
+	char* temp = (char*)malloc(mMaxBlockLen);
+	if (temp == NULL) {
+		LOG_ERROR(logger, "Could not allocate " << (count + 2) << " bytes of memory");
+		return -4;
+	}
+
 	uint32_t remaining = count;
 	uint32_t pos = 0;
 	while (remaining > 0) {
-		uint32_t blockLen = min(remaining, mMaxBlockLen);
+		uint32_t blockLen = min(remaining, mMaxBlockLen - 2);
 
-		uint32_t enc_cmd = EAPI_I2C_ENC_EXT_CMD(offset + pos);
-		uint32_t ret = SemaEApiI2CWriteTransfer(mHandle, EAPI_ID_I2C_EXTERNAL, mI2CAddress, enc_cmd, (char*)buf + pos, blockLen);
+		// Prepend offset to data, then write
+		temp[0] = ((offset + pos) >> 8) & 0xff;
+		temp[1] = (offset + pos) & 0xff;
+		memcpy(&temp[2], (char*)buf + pos, blockLen);
+
+		uint32_t ret = SemaEApiI2CWriteRaw(mHandle, EAPI_ID_I2C_EXTERNAL, mI2CAddress, temp, blockLen + 2 + 1);
 		if (ret != EAPI_STATUS_SUCCESS) {
 			LOG_WARN(logger, "I2C write failed, retrying (error 0x" << hex << ret << ")");
-			ret = SemaEApiI2CWriteTransfer(mHandle, EAPI_ID_I2C_EXTERNAL, mI2CAddress, enc_cmd, (char*)buf + pos, blockLen);
+			ret = SemaEApiI2CWriteRaw(mHandle, EAPI_ID_I2C_EXTERNAL, mI2CAddress, temp, blockLen + 2 + 1);
 			if (ret != EAPI_STATUS_SUCCESS) {
 				LOG_ERROR(logger, "I2C write failed (error 0x" << hex << ret << ")");
+				free(temp);
 				return -1;
 			}
 		}
 		remaining -= blockLen;
 		pos += blockLen;
 	}
+	free(temp);
 	return count;
 }
