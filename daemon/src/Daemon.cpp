@@ -142,6 +142,43 @@ int Daemon::run(int exitAfter) {
 		return -1;
 	}
 
+	Daemon_Header baseboardHeader;
+	bool baseboardHeaderRead = false;
+	string baseboardCommunicatorPluginName = Config::GetInstance()->GetString("Comm", "BaseboardPluginName", "");
+	if (baseboardCommunicatorPluginName != "") {
+		LOG_DEBUG(logger, "Separate Baseboard communicator configured, creating instance of plugin " << baseboardCommunicatorPluginName);
+		ICommunicator* baseboardComm = CommunicatorFactory::createCommunicator(baseboardCommunicatorPluginName);
+		if (baseboardComm != NULL) {
+			if (baseboardComm->initInterface()) {
+				if (baseboardComm->readData(0, &baseboardHeader, sizeof(Daemon_Header))) {
+					if (baseboardHeader.magic[0] == 'R' && baseboardHeader.magic[1] == 'E' && baseboardHeader.magic[2] == 'C' && baseboardHeader.magic[3] == 'S') {
+						baseboardHeaderRead = true;
+					} else {
+						LOG_ERROR(logger, "No valid header signature found");
+					}
+				} else {
+					LOG_ERROR(logger, "Could not read baseboard header");
+				}
+			} else {
+				LOG_ERROR(logger, "Could not initialize baseboard communicator interface!");
+			}
+			delete baseboardComm;
+			baseboardComm = NULL;
+		} else {
+			LOG_ERROR(logger, "Could not instantiate plugin " << baseboardCommunicatorPluginName << "!");
+		}
+		if (!baseboardHeaderRead) {
+			pm.shutdown();
+
+			mPluginLoggers->clear();
+			delete mPluginLoggers;
+
+			Config::GetInstance()->shutdown();
+
+			return -1;
+		}
+	}
+
 	LOG_DEBUG(logger, "Creating instance of plugin " << communicatorPluginName);
 	mComm = CommunicatorFactory::createCommunicator(communicatorPluginName);
 
@@ -177,13 +214,16 @@ int Daemon::run(int exitAfter) {
 	Daemon_Header hdr;
 	if (mComm->readData(0, &hdr, sizeof(Daemon_Header))) {
 		if (hdr.magic[0] == 'R' && hdr.magic[1] == 'E' && hdr.magic[2] == 'C' && hdr.magic[3] == 'S') {
-			if (hdr.baseboardID & 0x80) {
-				LOG_INFO(logger, "Running on baseboard with I2C address 0x" << hex << (hdr.baseboardID & 0x7f));
-			} else {
-				LOG_INFO(logger, "Running on baseboard with ID " << (int)hdr.baseboardID);
+			if (!baseboardHeaderRead) {
+				baseboardHeader = hdr;
 			}
-			if (hdr.maxSlots > 0) {
-				LOG_INFO(logger, "Number of slots on baseboard: " << (int)hdr.maxSlots);
+			if (baseboardHeader.baseboardID & 0x80) {
+				LOG_INFO(logger, "Running on baseboard with I2C address 0x" << hex << (baseboardHeader.baseboardID & 0x7f));
+			} else {
+				LOG_INFO(logger, "Running on baseboard with ID " << (int)baseboardHeader.baseboardID);
+			}
+			if (baseboardHeader.maxSlots > 0) {
+				LOG_INFO(logger, "Number of slots on baseboard: " << (int)baseboardHeader.maxSlots);
 			} else {
 				LOG_ERROR(logger, "Number of slots (0) invalid, try updating firmware");
 				delete mComm;
@@ -264,11 +304,11 @@ int Daemon::run(int exitAfter) {
 
 	uint8_t baseboardID = 0;
 	string nodeID = "";
-	if (!(hdr.baseboardID & 0x80)) {
-		baseboardID = hdr.baseboardID;
+	if (!(baseboardHeader.baseboardID & 0x80)) {
+		baseboardID = baseboardHeader.baseboardID;
 		stringstream nodeIDStream;
-		nodeIDStream << (int)hdr.baseboardID;
-		if (hdr.maxSlots > 1) {
+		nodeIDStream << (int)baseboardHeader.baseboardID;
+		if (baseboardHeader.maxSlots > 1) {
 			nodeIDStream << "-" << (mSlot + 1);
 		}
 		nodeID = nodeIDStream.str();
@@ -305,7 +345,7 @@ int Daemon::run(int exitAfter) {
 	}
 
 	LOG_INFO(logger, "Initializing sensors...");
-	Node::NodeType type = hdr.maxSlots == 4 ? Node::NODE_APALIS : Node::NODE_CXP;
+	Node::NodeType type = baseboardHeader.maxSlots == 4 ? Node::NODE_APALIS : Node::NODE_CXP;
 	Node* node = new Node(nodeID, baseboardID, mSlot, type);
 
 	size_t sensorSize = node->getSensors()->getSize();
