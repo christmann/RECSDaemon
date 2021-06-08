@@ -3,7 +3,7 @@ project(RECSDaemon)
 
 SET(MAJOR_VERSION 3)
 SET(MINOR_VERSION 7)
-SET(PATCH_VERSION 0)
+SET(PATCH_VERSION 1)
 
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
@@ -69,6 +69,7 @@ else()
 	add_subdirectory(plugins/LinuxSensorProviderEth)
 	add_subdirectory(plugins/LinuxSlotDetectorGPIO)
 	add_subdirectory(plugins/SensorProviderZynq)
+	add_subdirectory(plugins/SensorProviderJetson)
 endif()
 
 if ( ${BUILD_TESTS} )
