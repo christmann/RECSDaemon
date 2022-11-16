@@ -7,9 +7,6 @@ set(CMAKE_SYSTEM_PROCESSOR arm)
 SET(CMAKE_C_COMPILER   /opt/gcc-linaro/bin/arm-linux-gnueabihf-gcc)
 SET(CMAKE_CXX_COMPILER /opt/gcc-linaro/bin/arm-linux-gnueabihf-g++)
 
-# where is the target environment 
-SET(CMAKE_FIND_ROOT_PATH  /opt/gcc-linaro/arm-linux-gnueabihf)
-
 LIST(APPEND CMAKE_SYSTEM_LIBRARY_PATH
   /usr/lib/arm-linux-gnueabihf/
 )
@@ -19,4 +16,3 @@ SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 # for libraries and headers in the target directories
 SET(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 SET(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
-SET(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
