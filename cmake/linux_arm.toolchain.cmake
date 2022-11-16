@@ -10,6 +10,10 @@ SET(CMAKE_CXX_COMPILER /opt/gcc-linaro/bin/arm-linux-gnueabihf-g++)
 # where is the target environment 
 SET(CMAKE_FIND_ROOT_PATH  /opt/gcc-linaro/arm-linux-gnueabihf)
 
+LIST(APPEND CMAKE_SYSTEM_LIBRARY_PATH
+  /usr/lib/arm-linux-gnueabihf/
+)
+
 # search for programs in the build host directories
 SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 # for libraries and headers in the target directories
