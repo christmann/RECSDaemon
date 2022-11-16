@@ -9,9 +9,7 @@ SET(CMAKE_CXX_COMPILER /opt/gcc-linaro/bin/arm-linux-gnueabihf-g++)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -marm" CACHE STRING "c++ flags")
 set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -marm" CACHE STRING "c flags")
-
-message("${CMAKE_EXE_LINKER_FLAGS}")
-
+set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -L/lib/arm-linux-gnueabihf/")
 LIST(APPEND CMAKE_SYSTEM_LIBRARY_PATH
   /usr/lib/arm-linux-gnueabihf/
 )
