@@ -1,8 +1,7 @@
-message("setting i686 setting in toolchain file")
+message("Setting i386 setting in toolchain file")
 set(CMAKE_SYSTEM_NAME Linux)
 set(CMAKE_SYSTEM_VERSION 1)
 set(CMAKE_SYSTEM_PROCESSOR "i686")
-
 
 # which compilers to use for C and C++
 set(CMAKE_C_COMPILER   gcc)
