@@ -73,7 +73,7 @@
 			</target>
 			<target name="i386" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>/usr/bin/cmake</buildCommand>
-				<buildArguments>-G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Debug -DOPENSSL_CRYPTO_LIBRARY=/usr/lib/i386-linux-gnu/libcrypt.so.1.1.0 -DOPENSSL_SSL_LIBRARY=/usr/lib/i386-linux-gnu/libssl.so.1.1 -DBUILD_I386=true -DBUILD_ARM=false -DCMAKE_TOOLCHAIN_FILE=cmake/linux_i686.toolchain.cmake .</buildArguments>
+				<buildArguments>-G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Debug -DBUILD_I386=true -DBUILD_ARM=false -DCMAKE_TOOLCHAIN_FILE=cmake/linux_i686.toolchain.cmake .</buildArguments>
 				<buildTarget/>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>false</useDefaultCommand>
