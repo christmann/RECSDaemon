@@ -14,10 +14,10 @@ LIST(APPEND CMAKE_SYSTEM_LIBRARY_PATH
   /usr/lib/arm-linux-gnueabihf/
 )
 
-include_directories("/usr/include/arm-linux-gnueabihf/")
+#include_directories("/usr/include/arm-linux-gnueabihf/")
 
 # search for programs in the build host directories
 SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 # for libraries and headers in the target directories
 SET(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
-SET(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE BOTH)
+SET(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
