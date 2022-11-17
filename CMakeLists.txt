@@ -33,7 +33,7 @@ if (NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows" )
 set(CMAKE_INSTALL_PREFIX /opt/RECSDaemon)
 endif()
  
-set(PROJECT_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
+#set(PROJECT_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
  
 include_directories("${PROJECT_INCLUDE_DIR}")
 include_directories("${PROJECT_SOURCE_DIR}")
