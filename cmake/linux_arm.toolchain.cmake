@@ -4,8 +4,8 @@ SET(CMAKE_SYSTEM_VERSION 1)
 set(CMAKE_SYSTEM_PROCESSOR arm)
 
 # specify the cross compiler
-SET(CMAKE_C_COMPILER   /opt/gcc-linaro/bin/arm-linux-gnueabihf-gcc)
-SET(CMAKE_CXX_COMPILER /opt/gcc-linaro/bin/arm-linux-gnueabihf-g++)
+SET(CMAKE_C_COMPILER   /opt/gcc-linaro-7.5/bin/arm-linux-gnueabihf-gcc)
+SET(CMAKE_CXX_COMPILER /opt/gcc-linaro-7.5/bin/arm-linux-gnueabihf-g++)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -marm" CACHE STRING "c++ flags")
 set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -marm" CACHE STRING "c flags")
@@ -13,6 +13,8 @@ set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -L/lib/arm-linux-gnueabih
 LIST(APPEND CMAKE_SYSTEM_LIBRARY_PATH
   /usr/lib/arm-linux-gnueabihf/
 )
+
+include_directories("/usr/include/arm-linux-gnueabihf/")
 
 # search for programs in the build host directories
 SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
