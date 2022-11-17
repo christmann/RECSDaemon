@@ -4,8 +4,10 @@ SET(CMAKE_SYSTEM_VERSION 1)
 set(CMAKE_SYSTEM_PROCESSOR arm)
 
 # specify the cross compiler
-SET(CMAKE_C_COMPILER   /opt/gcc-linaro-7.5/bin/arm-linux-gnueabihf-gcc)
-SET(CMAKE_CXX_COMPILER /opt/gcc-linaro-7.5/bin/arm-linux-gnueabihf-g++)
+#SET(CMAKE_C_COMPILER   /opt/gcc-linaro-7.5/bin/arm-linux-gnueabihf-gcc)
+#SET(CMAKE_CXX_COMPILER /opt/gcc-linaro-7.5/bin/arm-linux-gnueabihf-g++)
+SET(CMAKE_C_COMPILER   gcc)
+SET(CMAKE_CXX_COMPILER g++)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -marm" CACHE STRING "c++ flags")
 set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -marm" CACHE STRING "c flags")
