@@ -34,9 +34,9 @@ set(CMAKE_INSTALL_PREFIX /opt/RECSDaemon)
 endif()
  
 #set(PROJECT_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
- 
-include_directories("${PROJECT_INCLUDE_DIR}")
-include_directories("${PROJECT_SOURCE_DIR}")
+
+include_directories(${PROJECT_SOURCE_DIR}/include)
+include_directories(${PROJECT_SOURCE_DIR})
  
 add_subdirectory(daemon)
 
