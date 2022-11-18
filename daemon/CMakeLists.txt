@@ -1,4 +1,3 @@
-
 cmake_minimum_required(VERSION 2.8)
 project(RECSDaemon)
 
@@ -24,7 +23,7 @@ find_package(Threads REQUIRED)
 
 if (NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows" )
 	find_package(OpenSSL)
-	include_directories(${OPENSSL_INCLUDE_DIRS})
+	include_directories(${OPENSSL_INCLUDE_DIRS} /bla)
 endif ()
 
 file(GLOB SOURCES ${PROJECT_SOURCE_DIR}/*.cpp ${PROJECT_SOURCE_DIR}/plugin_framework/*.cpp ${PROJECT_SOURCE_DIR}/network/*.cpp)
