@@ -23,8 +23,9 @@ endif ()
 find_package(Threads REQUIRED)
 
 if (NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows" )
+	set(OPENSSL_ROOT_DIR, /)
 	find_package(OpenSSL)
-	include_directories(${OPENSSL_INCLUDE_DIRS})
+	include_directories(${OPENSSL_INCLUDE_DIR})
 endif ()
 
 file(GLOB SOURCES ${PROJECT_SOURCE_DIR}/*.cpp ${PROJECT_SOURCE_DIR}/plugin_framework/*.cpp ${PROJECT_SOURCE_DIR}/network/*.cpp)
