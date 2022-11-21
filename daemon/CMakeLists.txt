@@ -4,11 +4,9 @@ project(RECSDaemon)
 set(CMAKE_BUILD_TYPE debug)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -Wextra")
 
-#set (PROJECT_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
 set (PROJECT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 include_directories(${PROJECT_BINARY_DIR})
-#include_directories(${PROJECT_INCLUDE_DIR})
 
 if (STATIC_LINKING)
 	set(DYNAMIC_FIND_LIBRARY_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES})
@@ -23,8 +21,7 @@ find_package(Threads REQUIRED)
 
 if (NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows" )
 	find_package(OpenSSL)
-	message(STATUS "Openssl include directory: ${OPENSSL_INCLUDE_DIR}")
-	include_directories(${OPENSSL_INCLUDE_DIR} /usr/include/)
+	include_directories(${OPENSSL_INCLUDE_DIR})
 endif ()
 
 file(GLOB SOURCES ${PROJECT_SOURCE_DIR}/*.cpp ${PROJECT_SOURCE_DIR}/plugin_framework/*.cpp ${PROJECT_SOURCE_DIR}/network/*.cpp)

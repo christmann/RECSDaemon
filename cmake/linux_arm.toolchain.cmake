@@ -15,8 +15,6 @@ LIST(APPEND CMAKE_SYSTEM_LIBRARY_PATH
   /usr/lib/arm-linux-gnueabihf/
 )
 
-#include_directories(BEFORE /usr/include/arm-linux-gnueabihf/)
-
 set(CMAKE_FIND_ROOT_PATH ${tools};/)
 
 # search for programs in the build host directories
@@ -26,4 +24,5 @@ SET(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 SET(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 
+# Force the toolchain to search includes also in /usr/include and /usr/include/arm-linux-gnueabihf/
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -idirafter /usr/include/ -idirafter /usr/include/arm-linux-gnueabihf/")
